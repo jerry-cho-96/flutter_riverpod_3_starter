@@ -1,0 +1,690 @@
+# 프로젝트 가이드
+
+이 문서는 `riverpod_origin_template` 의 구조와 사용 방법을 실무 관점에서 설명하는 가이드입니다.  
+처음 프로젝트를 받은 개발자가 아래 순서대로 읽으면:
+
+- 앱이 어떻게 시작되는지
+- 상태가 어떻게 흘러가는지
+- 새 화면과 새 API 를 어디에 추가해야 하는지
+- 어떤 코드를 어느 계층에 두어야 하는지
+
+를 한 번에 이해할 수 있도록 작성했습니다.
+
+## 1. 이 템플릿이 해결하려는 것
+
+이 프로젝트는 Flutter 앱에서 자주 필요한 기본 문제를 정석적으로 풀기 위한 스타터입니다.
+
+- 앱 시작 시 세션 복구
+- 인증 상태에 따른 라우팅 제어
+- API 호출과 토큰 저장 분리
+- 기능별 폴더 구조
+- `presentation -> application -> domain -> data` 계층 분리
+- Riverpod 3 기반 상태 관리
+- `go_router` 기반 라우팅
+- usecase 기반 비즈니스 흐름 분리
+
+핵심 원칙은 하나입니다.
+
+`화면은 비즈니스 로직을 몰라야 하고, 비즈니스 로직은 UI를 몰라야 한다.`
+
+## 2. 전체 구조 한눈에 보기
+
+```text
+lib/
+  app/
+    router/         앱 라우팅, 인증 가드, shell route
+    theme/          앱 테마
+    widgets/        앱 전역 위젯
+  core/
+    config/         환경설정, env
+    errors/         공통 failure 모델
+    logging/        provider observer, logger
+    network/        dio, interceptor, 예외 변환
+    presentation/   공통 UI 조각
+    result/         Result 타입
+    storage/        토큰 저장소
+  features/
+    auth/
+      application/
+        usecases/   로그인/로그아웃/세션복구 usecase
+      data/         remote datasource, dto, repository 구현
+      domain/       entity, repository contract
+      presentation/ splash, login 화면
+      auth_providers.dart
+    home/
+      application/
+        usecases/   상품 조회 usecase
+      data/
+      domain/
+      presentation/
+      home_providers.dart
+```
+
+## 3. 계층별 역할
+
+### presentation
+
+화면과 위젯이 있는 계층입니다.
+
+- `Widget`, `ConsumerWidget`, `ConsumerStatefulWidget`
+- 사용자 입력 처리
+- provider 구독
+- 로딩/에러/성공 상태 렌더링
+
+여기서는 다음을 하지 않습니다.
+
+- `Dio` 직접 호출
+- repository 직접 호출
+- 토큰 저장 직접 처리
+- 비즈니스 규칙 판단
+
+예시:
+
+- `login_screen.dart`
+- `splash_screen.dart`
+- `home_screen.dart`
+
+### application
+
+화면 흐름과 상태 전이를 담당하는 계층입니다.
+
+- Riverpod controller/provider
+- usecase 호출
+- 화면에서 필요한 상태 구성
+- 여러 usecase 결과를 화면 상태로 변환
+
+예시:
+
+- `SessionController`
+- `SignInController`
+- `ProductsController`
+
+#### usecase 를 둔 이유
+
+이 프로젝트에서 `usecase` 는 필요합니다.
+
+왜냐하면 controller 가 커지기 시작하면 금방 아래 문제가 생기기 때문입니다.
+
+- 인증/로그아웃/조회 로직이 controller 안에 뭉침
+- 다른 화면이나 기능에서 같은 비즈니스 로직을 재사용하기 어려움
+- 테스트 단위가 controller 하나로 커짐
+- application 레이어가 data 구현 쪽으로 다시 기울어짐
+
+그래서 이 템플릿에서는:
+
+- controller 는 상태 관리
+- usecase 는 비즈니스 흐름 처리
+
+로 역할을 나눴습니다.
+
+### domain
+
+비즈니스의 중심 개념을 표현하는 계층입니다.
+
+- entity
+- repository interface
+
+여기는 Flutter UI, Dio, SharedPreferences, SecureStorage 를 모릅니다.
+
+예시:
+
+- `AuthRepository`
+- `ProductsRepository`
+- `AuthSession`
+- `Product`
+
+### data
+
+실제 외부 시스템과 통신하는 계층입니다.
+
+- remote datasource
+- DTO
+- repository 구현체
+
+예시:
+
+- `AuthRemoteDataSource`
+- `ProductsRemoteDataSource`
+- `AuthRepositoryImpl`
+- `ProductsRepositoryImpl`
+
+## 4. 의존 방향
+
+이 프로젝트에서 의존 방향은 아래처럼만 허용합니다.
+
+```text
+presentation
+  -> application
+  -> application/usecases
+  -> domain
+  -> data
+  -> external(api, storage)
+```
+
+정확히는 다음 원칙으로 이해하면 됩니다.
+
+- `presentation` 은 `application` 만 본다.
+- `application` 은 `usecase` 를 호출한다.
+- `usecase` 는 `domain repository contract` 를 사용한다.
+- `data` 는 contract 를 구현한다.
+- 실제 구현 조립은 feature 루트 provider 가 담당한다.
+
+즉, 화면이 repository 구현체를 직접 보면 안 됩니다.
+
+## 5. 앱 시작부터 홈 진입까지 흐름
+
+### 1) 앱 시작
+
+`lib/main.dart` -> `app/bootstrap.dart`
+
+여기서 하는 일:
+
+- Flutter 바인딩 초기화
+- 웹이면 `PathUrlStrategy` 적용
+- `ProviderScope` 시작
+- `ProviderObserver` 연결
+
+### 2) 앱 생성
+
+`app/app.dart`
+
+여기서 하는 일:
+
+- `appConfigProvider` 로 환경 정보 읽기
+- 배너 적용
+- `MaterialApp.router` 생성
+
+### 3) 라우터 구성
+
+`app/router/app_router.dart`
+
+여기서 하는 일:
+
+- splash, login, authenticated shell route 구성
+- 인증 상태에 따라 redirect 수행
+
+### 4) 세션 복구
+
+`features/auth/application/session_controller.dart`
+
+여기서 하는 일:
+
+- 앱 시작 시 `restoreSession()` 호출
+- 내부적으로 `RestoreSessionUseCase` 실행
+- 토큰 존재 여부 확인
+- `auth/me` 확인
+- 필요 시 `auth/refresh`
+- 성공/실패 결과를 `SessionState` 로 변환
+
+### 5) 화면 이동
+
+`app_route_guard.dart`
+
+여기서 하는 일:
+
+- `unknown` 이면 splash 유지
+- `restorationFailed` 이면 splash 유지 + 재시도 UI
+- `unauthenticated` 이면 login 이동
+- `authenticated` 이면 shell/home 진입
+
+## 6. Riverpod 사용 규칙
+
+이 프로젝트에서는 Riverpod 를 다음처럼 사용합니다.
+
+### class-based provider
+
+상태 전이와 액션이 있는 경우 사용합니다.
+
+예시:
+
+- `SessionController`
+- `SignInController`
+- `ProductsController`
+
+언제 쓰나:
+
+- `refresh()`, `signIn()`, `signOut()` 같은 액션이 필요할 때
+- 단순 조회를 넘어서 상태 변화가 있을 때
+
+### 일반 Provider
+
+조립이나 설정 객체 주입용으로 사용합니다.
+
+예시:
+
+- `appConfigProvider`
+- `dioProvider`
+- `authRepositoryProvider`
+- `productsRepositoryProvider`
+- 각 usecase provider
+
+### Observer
+
+`core/logging/app_provider_observer.dart`
+
+여기서 provider 변경/실패를 관찰합니다.  
+나중에 Crashlytics, Sentry, Datadog 같은 도구를 붙일 때 여기서 확장하면 됩니다.
+
+## 7. go_router 사용 규칙
+
+현재 라우팅 구조는 다음 원칙을 따릅니다.
+
+- 공개 페이지: `splash`, `login`
+- 인증 필요 페이지: authenticated shell 하위
+- 인증 가드: top-level `redirect`
+- 확장 방향: shell 하위에 feature route 계속 추가
+
+### 왜 shell route 를 썼는가
+
+단일 홈 화면만 있을 때는 단순 route 로도 충분합니다.  
+하지만 실제 프로젝트에서는 아래가 자주 생깁니다.
+
+- 공통 app bar / bottom navigation
+- 탭 기반 구조
+- 인증 후 공통 레이아웃
+
+그래서 미리 `AuthenticatedShell` 구조를 넣어 두었습니다.
+
+## 8. 공통 core 계층 설명
+
+### config
+
+- `AppConfig`
+- `AppEnvironment`
+
+역할:
+
+- `API_BASE_URL`
+- `APP_ENV`
+- 앱 이름/배너 노출
+
+### network
+
+- `Dio` 생성
+- 인증 헤더 interceptor
+- 네트워크 로그 interceptor
+- `AppException`
+
+역할:
+
+- HTTP 연결 설정
+- 공통 timeout
+- Authorization 헤더 자동 주입
+- 네트워크 오류 메시지 표준화
+
+### errors
+
+- `AppFailure`
+
+역할:
+
+- application/usecase 에서 다룰 수 있는 공통 실패 타입
+- `network`, `unauthorized`, `validation`, `server`, `unknown`
+
+### result
+
+- `Result<T>`
+- `Success<T>`
+- `Failure<T>`
+
+역할:
+
+- usecase 가 성공/실패를 명시적으로 반환
+- controller 가 이를 해석해 화면 상태로 변환
+
+### storage
+
+- `TokenStorage`
+- `SecureTokenStorage`
+- `SharedPreferencesTokenStorage`
+
+역할:
+
+- 웹/모바일 저장 전략 분리
+- application 은 구현체를 몰라도 됨
+
+## 9. 새 기능을 추가할 때 기본 절차
+
+예를 들어 `profile` 기능을 새로 추가한다고 가정하겠습니다.
+
+### 1) feature 폴더 생성
+
+```text
+lib/features/profile/
+  application/
+    usecases/
+  data/
+    datasources/
+    models/
+    repositories/
+  domain/
+    entities/
+    repositories/
+  presentation/
+  profile_providers.dart
+```
+
+### 2) domain 부터 정의
+
+먼저 아래를 만듭니다.
+
+- entity
+- repository contract
+
+예시:
+
+- `Profile`
+- `ProfileRepository`
+
+### 3) data 구현
+
+다음 순서로 만듭니다.
+
+1. DTO
+2. RemoteDataSource
+3. RepositoryImpl
+
+즉, API 응답 형식에 가까운 것은 `data/models` 에 두고,  
+앱에서 사용하는 개념은 `domain/entities` 에 둡니다.
+
+### 4) feature provider 조립
+
+`profile_providers.dart` 에서 구현체를 묶습니다.
+
+예시:
+
+```dart
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepositoryImpl(ref.watch(profileRemoteDataSourceProvider));
+});
+```
+
+### 5) usecase 작성
+
+예시:
+
+- `GetProfileUseCase`
+- `UpdateProfileUseCase`
+
+규칙:
+
+- controller 는 usecase 만 호출
+- usecase 는 repository contract 만 사용
+- usecase 는 가능하면 `Result<T>` 반환
+
+### 6) controller/provider 작성
+
+화면에서 필요한 상태 단위로 만듭니다.
+
+예시:
+
+- 조회면 `AsyncNotifier`
+- 저장/수정 액션이면 별도 controller
+
+### 7) 화면 작성
+
+`presentation` 에서:
+
+- controller 상태 구독
+- 로딩/에러/성공 분기
+- 버튼 이벤트 전달
+
+### 8) 라우터 연결
+
+새 화면이 로그인 필요 화면이면 shell route 안에 추가합니다.
+
+## 10. 새 API 를 추가할 때 정확한 작업 순서
+
+여기서부터가 가장 중요합니다.
+
+예를 들어 `GET /todos` API 를 추가한다고 가정하겠습니다.
+
+### Step 1. API 응답 확인
+
+먼저 응답 구조를 확인합니다.
+
+예시 응답:
+
+```json
+{
+  "todos": [
+    {
+      "id": 1,
+      "todo": "Write docs",
+      "completed": false,
+      "userId": 7
+    }
+  ]
+}
+```
+
+### Step 2. DTO 작성
+
+`data/models` 에 API 응답용 DTO 를 만듭니다.
+
+예시:
+
+- `todo_dto.dart`
+- `paginated_todos_response_dto.dart`
+
+규칙:
+
+- API 응답 key 와 최대한 1:1
+- `freezed` + `json_serializable` 사용
+- nullable 여부를 실제 응답 기준으로 맞춤
+
+### Step 3. domain entity 작성
+
+`domain/entities` 에 앱에서 사용할 모델을 만듭니다.
+
+예시:
+
+- `todo.dart`
+
+규칙:
+
+- 화면이 진짜로 필요로 하는 개념으로 정의
+- DTO 를 그대로 들고 가지 않음
+
+### Step 4. datasource 작성
+
+`data/datasources` 에 실제 HTTP 호출 코드를 둡니다.
+
+규칙:
+
+- HTTP path, query, body, options 는 여기서 관리
+- `DioException` 을 `AppException` 으로 변환
+- UI 친화 메시지 조합은 여기서 최소화
+
+예시:
+
+```dart
+final todosRemoteDataSourceProvider = Provider<TodosRemoteDataSource>((ref) {
+  return TodosRemoteDataSource(dio: ref.watch(dioProvider));
+});
+```
+
+### Step 5. repository 구현
+
+`data/repositories` 에서 DTO -> Entity 매핑을 수행합니다.
+
+규칙:
+
+- datasource 는 DTO 반환
+- repository 는 entity 반환
+- 매핑 로직은 repository 내부 private method 로 정리
+
+### Step 6. repository contract 작성
+
+`domain/repositories` 에 contract 를 추가합니다.
+
+예시:
+
+```dart
+abstract interface class TodosRepository {
+  Future<List<Todo>> fetchTodos();
+}
+```
+
+### Step 7. feature provider 조립
+
+`feature_providers.dart` 에 구현체 연결
+
+예시:
+
+```dart
+final todosRepositoryProvider = Provider<TodosRepository>((ref) {
+  return TodosRepositoryImpl(ref.watch(todosRemoteDataSourceProvider));
+});
+```
+
+### Step 8. usecase 작성
+
+예시:
+
+```dart
+final getTodosUseCaseProvider = Provider<GetTodosUseCase>((ref) {
+  return GetTodosUseCase(ref.watch(todosRepositoryProvider));
+});
+```
+
+### Step 9. controller/provider 작성
+
+예시:
+
+```dart
+@riverpod
+class TodosController extends _$TodosController {
+  @override
+  Future<List<Todo>> build() => _load();
+
+  Future<List<Todo>> _load() async {
+    final result = await ref.read(getTodosUseCaseProvider).call();
+    return result.when(
+      success: (value) => value,
+      failure: (error) => throw error,
+    );
+  }
+}
+```
+
+### Step 10. 화면 연결
+
+마지막으로 `presentation` 에서 사용합니다.
+
+## 11. 새 API 추가 시 자주 하는 실수
+
+### 실수 1. 화면에서 Dio 직접 호출
+
+하지 않습니다.
+
+- 잘못된 예: `login_screen.dart` 에서 `dio.get(...)`
+- 올바른 예: 화면 -> controller -> usecase -> repository -> datasource
+
+### 실수 2. DTO 를 화면까지 전달
+
+하지 않습니다.
+
+- DTO 는 `data`
+- Entity 는 `domain`
+- 화면은 Entity 또는 화면용 state 만 사용
+
+### 실수 3. controller 에 비즈니스 로직을 몰아넣기
+
+하지 않습니다.
+
+- controller 는 상태 전이
+- usecase 는 비즈니스 로직
+
+### 실수 4. repository 구현체를 application 에서 직접 import
+
+하지 않습니다.
+
+- 구현 조립은 feature root provider 파일에서만
+
+### 실수 5. 예외를 무조건 throw 만 사용
+
+가능하면 usecase 에서 `Result<T>` 로 감싸고,  
+controller 에서 화면 상태에 맞는 에러로 바꿉니다.
+
+## 12. 새 화면만 추가할 때는 어떻게 하나
+
+API 없이 정적 화면만 추가한다면 더 단순합니다.
+
+### 로그인 필요 화면
+
+1. `presentation` 에 새 screen 추가
+2. `app_router.dart` 의 authenticated shell 아래 route 추가
+3. 필요한 controller/provider 가 있으면 feature application 에 추가
+
+### 로그인 불필요 화면
+
+1. `presentation` 에 screen 추가
+2. `app_router.dart` 에 공개 route 추가
+3. `AppRoute` enum 업데이트
+
+## 13. 테스트는 어디까지 해야 하나
+
+이 템플릿에서는 최소 아래를 권장합니다.
+
+### usecase 테스트
+
+- 성공 케이스
+- validation 실패
+- unauthorized 실패
+- network 실패
+
+### controller 테스트
+
+- 상태 전이 확인
+- usecase 결과가 state 에 잘 반영되는지 확인
+
+### route guard 테스트
+
+- unauthenticated -> login
+- authenticated -> home
+- restorationFailed -> splash 유지
+
+### widget 테스트
+
+필수는 아니지만 아래는 권장합니다.
+
+- 로그인 실패 메시지 노출
+- 홈 목록 렌더링
+
+## 14. 이 템플릿을 계속 좋게 유지하려면
+
+다음 규칙만 지켜도 구조가 쉽게 무너지지 않습니다.
+
+1. 새 기능은 무조건 feature 폴더로 추가합니다.
+2. 화면은 repository 를 직접 호출하지 않습니다.
+3. controller 는 usecase 만 호출합니다.
+4. 구현체 조립은 feature root provider 파일에서만 합니다.
+5. DTO 와 entity 를 섞지 않습니다.
+6. 공통 설정은 `core`, 기능 로직은 `features` 에 둡니다.
+7. route 추가 시 공개 route / 인증 route 를 명확히 나눕니다.
+
+## 15. 추천 작업 순서
+
+새 기능을 만들 때는 아래 순서가 가장 안전합니다.
+
+1. API 응답 확인
+2. DTO 작성
+3. Entity 작성
+4. Repository contract 작성
+5. DataSource 작성
+6. RepositoryImpl 작성
+7. Feature provider 조립
+8. UseCase 작성
+9. Controller 작성
+10. Screen 작성
+11. Route 연결
+12. Test 작성
+
+## 16. 마지막 요약
+
+이 프로젝트는 다음 문장으로 이해하면 됩니다.
+
+`화면은 상태를 보여주고, controller는 상태를 바꾸고, usecase는 일을 처리하고, repository는 데이터를 가져오고, datasource는 외부와 통신한다.`
+
+새 API 를 추가할 때도 이 규칙만 지키면 구조가 무너지지 않습니다.
