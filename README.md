@@ -37,7 +37,7 @@ flutter run -t lib/main_staging.dart
 flutter run -t lib/main_production.dart
 ```
 
-환경별 기본 설정값은 [app_flavors.dart](/Users/jerry/dev/flutter_template/riverpod_origin_template/lib/core/config/app_flavors.dart) 에서 한 번에 관리합니다.
+환경별 기본 설정값은 [app_flavors.dart](./lib/core/config/app_flavors.dart) 에서 한 번에 관리합니다.
 
 ## 예제 계정
 
@@ -100,7 +100,7 @@ test/
 - `application` 은 controller/provider 와 usecase 로 화면 흐름, side effect 를 관리합니다.
 - `domain` 은 엔티티, value object, repository 계약만 가지며 DTO/JSON/storage/network 타입을 직접 알지 않습니다.
 - `data` 는 DTO, remote/local datasource, repository 구현을 가집니다.
-- feature 루트의 composition provider 가 구현체를 조립하고, `application` 은 그 provider 를 통해서만 의존성을 받습니다.
+- feature 루트의 composition provider 가 repository 구현체를 조립하고, usecase provider 는 필요 시 `core` provider 와 함께 의존성을 주입받습니다.
 - controller 는 repository 를 직접 호출하지 않고 usecase 만 호출합니다.
 - usecase 실패는 `AppFailure` 로 정규화하고, UI 는 이 계약만 직접 해석합니다.
 - 읽기 전용 목록도 확장 가능성을 위해 `AsyncNotifier` controller 패턴을 사용합니다.
@@ -111,8 +111,9 @@ test/
 flowchart LR
     UI[Presentation Widgets] --> APP[Application Providers / Controllers]
     APP --> USECASE[Application UseCases]
-    USECASE --> DOMAIN[Domain Entities / Repository Contracts]
-    USECASE --> DATA[Repository Implementations]
+    USECASE --> CONTRACT[Domain Repository Contracts / Entities]
+    ROOT[Feature Root Providers] --> DATA[Repository Implementations]
+    DATA --> CONTRACT
     DATA --> REMOTE[Remote Data Source / Dio]
     DATA --> LOCAL[Local Storage]
     REMOTE --> API[DummyJSON API]
@@ -187,13 +188,15 @@ flutter run --dart-define=APP_ENV=prod
 ## 권장 작업 흐름
 
 1. feature 단위로 `presentation/application/domain/data` 구조를 복제합니다.
-2. 새 API 가 필요하면 `data/models`, `datasources`, `repositories` 에서부터 추가합니다.
-3. 화면에서 직접 `Dio` 를 호출하지 않고 provider 와 repository 계약을 통해 접근합니다.
+2. 새 API 가 필요하면 `data/models` DTO, `domain/entities`, `domain/repositories`, `data/datasources`, `data/repositories` 순서로 추가합니다.
+3. repository 구현체 조립은 `<feature>_providers.dart` 에서 하고, controller 는 usecase 만 호출합니다.
+4. 마지막에 `presentation`, route, test 를 연결합니다.
+5. 화면에서 직접 `Dio` 를 호출하지 않고 provider 와 repository 계약을 통해 접근합니다.
 
 ## 스타터킷 확장 기준
 
 - 현재 구조는 소형/중형 프로젝트에 바로 적합합니다.
-- 대형 프로젝트로 커지면 protected feature 별로 route builder 또는 route module 을 분리하는 것을 기본 규칙으로 삼습니다.
+- 현재 템플릿은 이미 `app/router/route_modules` 를 사용해 route 조립을 분리하고 있습니다.
+- protected feature 가 늘어나면 기존 module 에 route 를 추가하거나 feature 단위 module 을 계속 분리하는 방식으로 확장합니다.
 - 기준:
-  인증 후 화면이 2~3개 feature 를 넘기기 시작하면 `app_router.dart` 한 파일에 누적하지 않고 feature 단위 route 조립으로 나눕니다.
-- 현재 템플릿은 `app/router/route_modules` 로 그 확장 패턴의 샘플을 포함합니다.
+  인증 후 화면이 2~3개 feature 를 넘기기 시작하면 `app_router.dart` 한 파일에 세부 route 정의를 누적하지 않고 feature 단위 route 조립으로 유지합니다.

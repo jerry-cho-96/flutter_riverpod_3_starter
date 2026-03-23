@@ -16,7 +16,9 @@
 
 ```text
 presentation -> application(controller/provider) -> application/usecases
--> domain(repository contract / entity) -> data(repository impl / datasource / dto)
+application/usecases -> domain(repository contract / entity)
+data(repository impl / datasource / dto) -> domain(repository contract / entity)
+data -> external(api, storage)
 ```
 
 반드시 지켜야 하는 규칙:
@@ -24,11 +26,14 @@ presentation -> application(controller/provider) -> application/usecases
 - `presentation` 은 repository 를 직접 호출하면 안 됩니다.
 - `presentation` 은 `Dio`, `SharedPreferences`, `FlutterSecureStorage` 를 직접 사용하면 안 됩니다.
 - `application` 은 repository 구현체를 직접 import 하면 안 됩니다.
-- `application` 은 feature root provider 또는 usecase 만 통해서 의존성을 받아야 합니다.
+- controller 는 usecase 만 통해서 의존성을 받아야 합니다.
+- usecase provider 는 feature root provider 와 `core` 의 공통 provider 를 조합해 의존성을 주입받을 수 있습니다.
 - `usecase` 는 repository contract 를 사용해야 하며, data 구현 상세를 몰라야 합니다.
 - `domain` 은 DTO, JSON 직렬화, storage 구현, network 구현 타입을 직접 참조하면 안 됩니다.
 - `data` 는 DTO -> Entity 변환을 담당합니다.
-- feature 구현체 조립은 feature 루트 provider 파일에서만 수행합니다.
+- repository 구현체 조립은 feature 루트 provider 파일에서 수행합니다.
+- datasource provider 는 해당 `data/datasources` 파일 안에 둘 수 있습니다.
+- 공통 infra provider(`dioProvider`, `tokenStorageProvider`, logger/monitoring 등)는 `core` 에 둡니다.
 - 이 저장소의 기본 네이밍은 `<feature>_providers.dart` 입니다.
   - 예: `auth_providers.dart`, `home_providers.dart`
 
@@ -51,6 +56,7 @@ presentation -> application(controller/provider) -> application/usecases
 - 공통 network 설정
 - 공통 storage
 - 공통 presentation helper
+- 앱 전역 infra provider
 
 ### `lib/features/<feature>`
 
@@ -75,6 +81,13 @@ feature/
 - `domain/value_objects` 는 feature 고유 value object 가 필요할 때 사용합니다.
 - `core` 에는 feature 고유 entity/value object 를 두지 않습니다.
 
+추가 배치 규칙:
+
+- usecase provider 는 `application/usecases` 파일 안에 둡니다.
+- repository provider 는 `<feature>_providers.dart` 에 둡니다.
+- datasource provider 는 `data/datasources` 파일 안에 둡니다.
+- controller 는 `application` 에 두고 codegen 파일(`*.g.dart`)과 함께 관리합니다.
+
 ## 4. Riverpod 규칙
 
 - side effect 와 상태 전이가 있으면 class-based provider 를 사용합니다.
@@ -96,8 +109,11 @@ feature/
 - 인증이 필요한 화면은 authenticated shell 하위에 둡니다.
 - 인증 가드는 top-level `redirect` 에서 처리합니다.
 - 로그인 여부 판정은 `SessionState` 만 기준으로 합니다.
-- 새 인증 필요 화면 추가 시 shell route 아래에 등록합니다.
-- protected feature 가 2~3개를 넘기기 시작하면 `app/router/route_modules` 로 route 조립을 분리합니다.
+- 현재 템플릿은 이미 `app/router/route_modules` 로 route 조립을 분리하고 있습니다.
+- 새 인증 필요 화면은 해당 feature route module 에 추가합니다.
+- 새 공개 화면은 auth/public route module 에 추가합니다.
+- `app_router.dart` 는 module 조립과 redirect 유지가 우선이며, 상세 route 정의를 여기에 계속 누적하지 않습니다.
+- protected feature 가 2~3개를 넘기기 시작하면 계속 feature 단위 route module 조립을 유지합니다.
 
 ## 6. usecase 규칙
 
@@ -131,7 +147,7 @@ feature/
 7. `application/usecases` 에 usecase 작성
 8. `application` 에 controller/provider 작성
 9. `presentation` 에 화면 연결
-10. 필요 시 `app_router.dart` 에 route 추가
+10. 필요 시 해당 route module 과 `AppRoute` 에 route 추가
 11. 테스트 작성
 
 ### API 추가 시 금지사항
@@ -226,6 +242,7 @@ feature/
 작업 전 반드시 스스로 확인할 것:
 
 - 이 변경이 어느 feature 에 속하는가?
+- provider 를 어디에 둘지 현재 배치 규칙과 맞는가?
 - 이 로직은 controller 가 아니라 usecase 로 가야 하는가?
 - DTO 와 Entity 를 분리했는가?
 - UI 가 data layer 를 직접 보고 있지 않은가?

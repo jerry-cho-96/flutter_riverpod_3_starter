@@ -18,7 +18,7 @@
 - 인증 상태에 따른 라우팅 제어
 - API 호출과 토큰 저장 분리
 - 기능별 폴더 구조
-- `presentation -> application -> domain -> data` 계층 분리
+- `presentation -> application -> usecase -> domain contract` 와 `data -> domain contract` 분리
 - Riverpod 3 기반 상태 관리
 - `go_router` 기반 라우팅
 - usecase 기반 비즈니스 흐름 분리
@@ -156,12 +156,11 @@ lib/
 이 프로젝트에서 의존 방향은 아래처럼만 허용합니다.
 
 ```text
-presentation
-  -> application
-  -> application/usecases
-  -> domain
-  -> data
-  -> external(api, storage)
+presentation -> application(controller/provider) -> application/usecases
+application/usecases -> domain(repository contract / entity)
+data(repository impl / datasource / dto) -> domain(repository contract / entity)
+data -> external(api, storage)
+feature root providers -> data 구현체 조립
 ```
 
 정확히는 다음 원칙으로 이해하면 됩니다.
@@ -170,7 +169,7 @@ presentation
 - `application` 은 `usecase` 를 호출한다.
 - `usecase` 는 `domain repository contract` 를 사용한다.
 - `data` 는 contract 를 구현한다.
-- 실제 구현 조립은 feature 루트 provider 가 담당한다.
+- repository 구현체 조립은 feature 루트 provider 가 담당한다.
 
 즉, 화면이 repository 구현체를 직접 보면 안 됩니다.
 
@@ -409,6 +408,9 @@ lib/features/profile/
 2. RemoteDataSource
 3. RepositoryImpl
 
+즉, feature 단위 큰 흐름은 `domain` 개념을 먼저 잡고,  
+API 하나를 실제로 붙일 때의 세부 순서는 아래 10장 기준으로 진행하면 됩니다.
+
 즉, API 응답 형식에 가까운 것은 `data/models` 에 두고,  
 앱에서 사용하는 개념은 `domain/entities` 에 둡니다.
 
@@ -456,7 +458,7 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 
 ### 8) 라우터 연결
 
-새 화면이 로그인 필요 화면이면 shell route 안에 추가합니다.
+새 화면이 로그인 필요 화면이면 shell route 하위의 feature route module 에 추가합니다.
 
 ## 10. 새 API 를 추가할 때 정확한 작업 순서
 
@@ -512,7 +514,24 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 - DTO 를 그대로 들고 가지 않음
 - domain entity/value object 에 `fromJson/toJson` 를 넣지 않음
 
-### Step 4. datasource 작성
+### Step 4. repository contract 작성
+
+`domain/repositories` 에 contract 를 추가합니다.
+
+예시:
+
+```dart
+abstract interface class TodosRepository {
+  Future<List<Todo>> fetchTodos();
+}
+```
+
+규칙:
+
+- usecase 는 이 contract 만 바라봄
+- data 구현 상세는 contract 밖으로 새지 않음
+
+### Step 5. datasource 작성
 
 `data/datasources` 에 실제 HTTP 호출 코드를 둡니다.
 
@@ -530,7 +549,7 @@ final todosRemoteDataSourceProvider = Provider<TodosRemoteDataSource>((ref) {
 });
 ```
 
-### Step 5. repository 구현
+### Step 6. repository 구현
 
 `data/repositories` 에서 DTO -> Entity 매핑을 수행합니다.
 
@@ -539,18 +558,6 @@ final todosRemoteDataSourceProvider = Provider<TodosRemoteDataSource>((ref) {
 - datasource 는 DTO 반환
 - repository 는 entity 반환
 - 매핑 로직은 repository 내부 private method 로 정리
-
-### Step 6. repository contract 작성
-
-`domain/repositories` 에 contract 를 추가합니다.
-
-예시:
-
-```dart
-abstract interface class TodosRepository {
-  Future<List<Todo>> fetchTodos();
-}
-```
 
 ### Step 7. feature provider 조립
 
@@ -563,6 +570,9 @@ final todosRepositoryProvider = Provider<TodosRepository>((ref) {
   return TodosRepositoryImpl(ref.watch(todosRemoteDataSourceProvider));
 });
 ```
+
+feature root provider 파일은 repository 구현체 조립 지점이며,  
+usecase provider 는 필요 시 feature provider 와 `core` provider 를 함께 사용해 의존성을 주입받습니다.
 
 ### Step 8. usecase 작성
 
@@ -647,13 +657,13 @@ API 없이 정적 화면만 추가한다면 더 단순합니다.
 ### 로그인 필요 화면
 
 1. `presentation` 에 새 screen 추가
-2. `app_router.dart` 의 authenticated shell 아래 route 추가
+2. 현재 feature route module 에 route 추가
 3. 필요한 controller/provider 가 있으면 feature application 에 추가
 
 ### 로그인 불필요 화면
 
 1. `presentation` 에 screen 추가
-2. `app_router.dart` 에 공개 route 추가
+2. 현재 auth/public route module 에 공개 route 추가
 3. `AppRoute` enum 업데이트
 
 ## 13. 테스트는 어디까지 해야 하나
