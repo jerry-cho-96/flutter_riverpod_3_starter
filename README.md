@@ -29,6 +29,16 @@ flutter run --dart-define=API_BASE_URL=https://dummyjson.com
 dart run build_runner watch --delete-conflicting-outputs
 ```
 
+환경별 진입점:
+
+```bash
+flutter run -t lib/main_development.dart
+flutter run -t lib/main_staging.dart
+flutter run -t lib/main_production.dart
+```
+
+환경별 기본 설정값은 [app_flavors.dart](/Users/jerry/dev/flutter_template/riverpod_origin_template/lib/core/config/app_flavors.dart) 에서 한 번에 관리합니다.
+
 ## 예제 계정
 
 - username: `emilys`
@@ -40,35 +50,59 @@ dart run build_runner watch --delete-conflicting-outputs
 lib/
   app/
     router/
+      route_modules/
     theme/
+    widgets/
   core/
     config/
+    errors/
+    logging/
     network/
     presentation/
+    result/
     storage/
   features/
     auth/
+      auth_providers.dart
       application/
         usecases/
       data/
+        datasources/
+        models/
+        repositories/
       domain/
+        entities/
+        repositories/
+        value_objects/
       presentation/
     home/
+      home_providers.dart
       application/
         usecases/
       data/
+        datasources/
+        models/
+        repositories/
       domain/
+        entities/
+        repositories/
       presentation/
+test/
+  auth/
+  home/
+  router/
+  helpers/
 ```
 
 ## 아키텍처 원칙
 
 - `presentation` 은 provider 를 구독하고 사용자 이벤트만 전달합니다.
 - `application` 은 controller/provider 와 usecase 로 화면 흐름, side effect 를 관리합니다.
-- `domain` 은 엔티티와 repository 계약만 가집니다.
+- `domain` 은 엔티티, value object, repository 계약만 가지며 DTO/JSON/storage/network 타입을 직접 알지 않습니다.
 - `data` 는 DTO, remote/local datasource, repository 구현을 가집니다.
 - feature 루트의 composition provider 가 구현체를 조립하고, `application` 은 그 provider 를 통해서만 의존성을 받습니다.
 - controller 는 repository 를 직접 호출하지 않고 usecase 만 호출합니다.
+- usecase 실패는 `AppFailure` 로 정규화하고, UI 는 이 계약만 직접 해석합니다.
 - 읽기 전용 목록도 확장 가능성을 위해 `AsyncNotifier` controller 패턴을 사용합니다.
 
 ## 아키텍처 흐름도
@@ -114,14 +148,15 @@ flowchart TD
 - authenticated shell route 기반 확장 구조
 - `APP_ENV`, `API_BASE_URL` 기반 환경 분리와 비생산 배너
 - `ProviderObserver` 및 네트워크 로깅 훅
+- bootstrap 전역 에러 처리 및 monitoring 확장 포인트
 - 홈에서 현재 사용자 정보 출력
 - `products` 목록 조회와 pull-to-refresh
 
 ## 환경값
 
 - `API_BASE_URL`
-  - 기본값: `https://dummyjson.com`
-  - 필요 시 `--dart-define=API_BASE_URL=...` 로 교체
+  - 환경별 기본값은 `lib/core/config/app_flavors.dart` 에서 관리
+  - 필요 시 `--dart-define=API_BASE_URL=...` 로 일시 override 가능
 - `APP_ENV`
   - 기본값: `dev`
   - 지원값: `dev`, `staging`, `prod`
@@ -154,3 +189,11 @@ flutter run --dart-define=APP_ENV=prod
 1. feature 단위로 `presentation/application/domain/data` 구조를 복제합니다.
 2. 새 API 가 필요하면 `data/models`, `datasources`, `repositories` 에서부터 추가합니다.
 3. 화면에서 직접 `Dio` 를 호출하지 않고 provider 와 repository 계약을 통해 접근합니다.
+
+## 스타터킷 확장 기준
+
+- 현재 구조는 소형/중형 프로젝트에 바로 적합합니다.
+- 대형 프로젝트로 커지면 protected feature 별로 route builder 또는 route module 을 분리하는 것을 기본 규칙으로 삼습니다.
+- 기준:
+  인증 후 화면이 2~3개 feature 를 넘기기 시작하면 `app_router.dart` 한 파일에 누적하지 않고 feature 단위 route 조립으로 나눕니다.
+- 현재 템플릿은 `app/router/route_modules` 로 그 확장 패턴의 샘플을 포함합니다.

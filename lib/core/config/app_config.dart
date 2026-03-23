@@ -8,18 +8,26 @@ class AppConfig {
   static const String defaultApiBaseUrl = 'https://dummyjson.com';
   static const String defaultEnvironment = 'dev';
 
-  factory AppConfig.fromEnvironment() {
+  factory AppConfig.fromEnvironment({
+    String? fallbackApiBaseUrl,
+    AppEnvironment? environmentOverride,
+  }) {
     return AppConfig(
-      apiBaseUrl: String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: defaultApiBaseUrl,
-      ),
-      environment: AppEnvironment.fromValue(
-        const String.fromEnvironment(
-          'APP_ENV',
-          defaultValue: defaultEnvironment,
-        ),
-      ),
+      apiBaseUrl:
+          const String.fromEnvironment(
+            'API_BASE_URL',
+            defaultValue: '',
+          ).trim().isNotEmpty
+          ? const String.fromEnvironment('API_BASE_URL')
+          : fallbackApiBaseUrl ?? defaultApiBaseUrl,
+      environment:
+          environmentOverride ??
+          AppEnvironment.fromValue(
+            const String.fromEnvironment(
+              'APP_ENV',
+              defaultValue: defaultEnvironment,
+            ),
+          ),
     );
   }
 

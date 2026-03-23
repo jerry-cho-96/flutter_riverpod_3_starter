@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app_logger.dart';
+import 'app_monitoring.dart';
 
 final class AppProviderObserver extends ProviderObserver {
-  AppProviderObserver(this._logger);
+  AppProviderObserver(this._logger, this._monitoring);
 
   final AppLogger _logger;
+  final AppMonitoring _monitoring;
 
   @override
   void didUpdateProvider(
@@ -24,10 +26,17 @@ final class AppProviderObserver extends ProviderObserver {
     Object error,
     StackTrace stackTrace,
   ) {
+    final providerName = context.provider.name ?? context.provider.runtimeType;
     _logger.error(
-      'provider failed: ${context.provider.name ?? context.provider.runtimeType}',
+      'provider failed: $providerName',
       error: error,
       stackTrace: stackTrace,
+    );
+    _monitoring.recordError(
+      'provider failed: $providerName',
+      error: error,
+      stackTrace: stackTrace,
+      fatal: false,
     );
   }
 }

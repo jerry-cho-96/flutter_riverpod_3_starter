@@ -26,8 +26,11 @@ presentation -> application(controller/provider) -> application/usecases
 - `application` 은 repository 구현체를 직접 import 하면 안 됩니다.
 - `application` 은 feature root provider 또는 usecase 만 통해서 의존성을 받아야 합니다.
 - `usecase` 는 repository contract 를 사용해야 하며, data 구현 상세를 몰라야 합니다.
+- `domain` 은 DTO, JSON 직렬화, storage 구현, network 구현 타입을 직접 참조하면 안 됩니다.
 - `data` 는 DTO -> Entity 변환을 담당합니다.
-- feature 구현체 조립은 `feature_root_providers.dart` 같은 feature 루트 파일에서만 수행합니다.
+- feature 구현체 조립은 feature 루트 provider 파일에서만 수행합니다.
+- 이 저장소의 기본 네이밍은 `<feature>_providers.dart` 입니다.
+  - 예: `auth_providers.dart`, `home_providers.dart`
 
 ## 3. 폴더별 책임
 
@@ -35,6 +38,7 @@ presentation -> application(controller/provider) -> application/usecases
 
 - 앱 전체 부트스트랩
 - 전역 라우터
+- route module 조립
 - shell route
 - 앱 테마
 - 앱 전역 위젯
@@ -63,9 +67,13 @@ feature/
   domain/
     entities/
     repositories/
+    value_objects/
   presentation/
   <feature>_providers.dart
 ```
+
+- `domain/value_objects` 는 feature 고유 value object 가 필요할 때 사용합니다.
+- `core` 에는 feature 고유 entity/value object 를 두지 않습니다.
 
 ## 4. Riverpod 규칙
 
@@ -89,6 +97,7 @@ feature/
 - 인증 가드는 top-level `redirect` 에서 처리합니다.
 - 로그인 여부 판정은 `SessionState` 만 기준으로 합니다.
 - 새 인증 필요 화면 추가 시 shell route 아래에 등록합니다.
+- protected feature 가 2~3개를 넘기기 시작하면 `app/router/route_modules` 로 route 조립을 분리합니다.
 
 ## 6. usecase 규칙
 
@@ -107,6 +116,7 @@ feature/
 
 - controller 안에 비즈니스 로직을 직접 구현
 - repository 호출/예외 변환/입력 검증을 controller 에 몰아넣기
+- domain entity/value object 에 `fromJson/toJson` 추가
 
 ## 7. API 추가 규칙
 
@@ -129,14 +139,16 @@ feature/
 - 화면에서 `dio.get/post/...` 직접 호출 금지
 - DTO 를 화면까지 전달 금지
 - repository 구현체를 controller 에서 직접 import 금지
+- domain entity/value object 에 `fromJson/toJson` 추가 금지
 - 예외를 문자열로 아무렇게나 처리 금지
 
 ## 8. 에러 처리 규칙
 
 - network layer 는 `AppException`
 - application/usecase layer 는 `AppFailure`
-- usecase 는 가능하면 `Result<T>` 를 반환합니다.
+- usecase 는 가능하면 `Result<T>` 를 반환하고, 실패 타입은 `AppFailure` 로 통일합니다.
 - controller 는 `Result<T>` 를 해석해 화면 상태로 변환합니다.
+- UI 와 공통 presentation helper 는 `AppFailure` 만 직접 해석합니다.
 - 인증 토큰 삭제는 `401/403` 처럼 실제 인증 무효로 판단되는 경우에만 수행합니다.
 - 일시적 네트워크 실패로 세션을 지우면 안 됩니다.
 
@@ -150,17 +162,27 @@ feature/
 ## 10. 환경설정 규칙
 
 - 환경은 `APP_ENV`, `API_BASE_URL` 로 제어합니다.
+- 운영형 실행은 `lib/main_development.dart`, `lib/main_staging.dart`, `lib/main_production.dart` entrypoint 를 우선 사용합니다.
+- 환경별 기본 설정값은 `lib/core/config/app_flavors.dart` 한 파일에서 관리합니다.
 - 새 환경값이 필요하면:
+  - 가능하면 먼저 `app_flavors.dart` 에 기본값 추가
   - `AppConfig` 에 추가
   - `README.md` 와 문서 업데이트
   - 필요 시 기본값 정의
 - 하드코딩된 서버 주소를 feature 코드에 직접 넣지 않습니다.
+
+## 10-1. 관측성 규칙
+
+- bootstrap 에서 `FlutterError.onError`, `PlatformDispatcher.instance.onError` 를 연결합니다.
+- provider 실패는 logger 와 monitoring 훅에 함께 기록합니다.
+- 실제 Sentry/Crashlytics 연결 시 `core/logging/app_monitoring.dart` 구현체를 교체합니다.
 
 ## 11. 저장소 및 보안 규칙
 
 - 모바일 토큰 저장은 `flutter_secure_storage`
 - 웹 토큰 저장은 `shared_preferences`
 - UI, usecase, controller 에서 저장소 구현체를 직접 쓰지 않습니다.
+- 토큰 값 객체는 `features/auth/domain/value_objects` 에 두고, storage 는 문자열 저장 책임만 가집니다.
 - 토큰 저장/삭제는 usecase 또는 session controller 흐름 안에서만 수행합니다.
 
 ## 12. 문서 규칙
@@ -191,6 +213,13 @@ feature/
 - controller 상태 전이 테스트
 - route guard 테스트
 - 필요한 경우 widget 테스트
+
+최소 usecase 시나리오:
+
+- validation 실패
+- unauthorized/network/server 실패
+- 성공 케이스
+- 인증 usecase 는 토큰 보존/삭제 분기까지 확인
 
 ## 14. 작업 전 체크리스트
 

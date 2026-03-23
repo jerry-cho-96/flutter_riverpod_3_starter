@@ -33,6 +33,7 @@
 lib/
   app/
     router/         앱 라우팅, 인증 가드, shell route
+      route_modules/ 대형 확장을 위한 route 조립 샘플
     theme/          앱 테마
     widgets/        앱 전역 위젯
   core/
@@ -48,7 +49,7 @@ lib/
       application/
         usecases/   로그인/로그아웃/세션복구 usecase
       data/         remote datasource, dto, repository 구현
-      domain/       entity, repository contract
+      domain/       entity, value object, repository contract
       presentation/ splash, login 화면
       auth_providers.dart
     home/
@@ -122,15 +123,17 @@ lib/
 비즈니스의 중심 개념을 표현하는 계층입니다.
 
 - entity
+- value object
 - repository interface
 
-여기는 Flutter UI, Dio, SharedPreferences, SecureStorage 를 모릅니다.
+여기는 Flutter UI, Dio, SharedPreferences, SecureStorage, JSON 직렬화 를 모릅니다.
 
 예시:
 
 - `AuthRepository`
 - `ProductsRepository`
 - `AuthSession`
+- `AuthTokens`
 - `Product`
 
 ### data
@@ -181,6 +184,8 @@ presentation
 
 - Flutter 바인딩 초기화
 - 웹이면 `PathUrlStrategy` 적용
+- entrypoint 별 환경 override 적용
+- 전역 Flutter/platform error hook 연결
 - `ProviderScope` 시작
 - `ProviderObserver` 연결
 
@@ -201,6 +206,7 @@ presentation
 여기서 하는 일:
 
 - splash, login, authenticated shell route 구성
+- route module 단위 조립
 - 인증 상태에 따라 redirect 수행
 
 ### 4) 세션 복구
@@ -272,7 +278,7 @@ presentation
 - 공개 페이지: `splash`, `login`
 - 인증 필요 페이지: authenticated shell 하위
 - 인증 가드: top-level `redirect`
-- 확장 방향: shell 하위에 feature route 계속 추가
+- 확장 방향: shell 하위에 feature route 를 추가하되, 인증 후 feature 가 2~3개를 넘기기 시작하면 feature 단위 route builder 또는 route module 로 분리
 
 ### 왜 shell route 를 썼는가
 
@@ -291,12 +297,27 @@ presentation
 
 - `AppConfig`
 - `AppEnvironment`
+- `AppFlavors`
 
 역할:
 
 - `API_BASE_URL`
 - `APP_ENV`
+- 환경별 기본 설정 중앙화
+- 환경별 entrypoint 와 bootstrap override
 - 앱 이름/배너 노출
+
+### logging
+
+- `AppLogger`
+- `AppMonitoring`
+- `AppProviderObserver`
+
+역할:
+
+- debug/info/error 로그 출력
+- provider 실패 및 전역 오류 관측성 훅 연결
+- 나중에 Sentry/Crashlytics 로 교체 가능한 확장 포인트
 
 ### network
 
@@ -331,6 +352,7 @@ presentation
 
 - usecase 가 성공/실패를 명시적으로 반환
 - controller 가 이를 해석해 화면 상태로 변환
+- 실패 타입은 `AppFailure` 로 통일
 
 ### storage
 
@@ -342,6 +364,7 @@ presentation
 
 - 웹/모바일 저장 전략 분리
 - application 은 구현체를 몰라도 됨
+- 저장소는 access/refresh token 문자열 저장 책임만 가짐
 
 ## 9. 새 기능을 추가할 때 기본 절차
 
@@ -360,6 +383,7 @@ lib/features/profile/
   domain/
     entities/
     repositories/
+    value_objects/
   presentation/
   profile_providers.dart
 ```
@@ -369,6 +393,7 @@ lib/features/profile/
 먼저 아래를 만듭니다.
 
 - entity
+- value object
 - repository contract
 
 예시:
@@ -485,6 +510,7 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 
 - 화면이 진짜로 필요로 하는 개념으로 정의
 - DTO 를 그대로 들고 가지 않음
+- domain entity/value object 에 `fromJson/toJson` 를 넣지 않음
 
 ### Step 4. datasource 작성
 
@@ -588,6 +614,13 @@ class TodosController extends _$TodosController {
 - DTO 는 `data`
 - Entity 는 `domain`
 - 화면은 Entity 또는 화면용 state 만 사용
+
+### 실수 2-1. domain 에 JSON 책임 넣기
+
+하지 않습니다.
+
+- 잘못된 예: `domain/entity` 에 `fromJson/toJson`
+- 올바른 예: JSON 은 DTO 에만 두고 repository 에서 DTO -> Entity 매핑
 
 ### 실수 3. controller 에 비즈니스 로직을 몰아넣기
 
