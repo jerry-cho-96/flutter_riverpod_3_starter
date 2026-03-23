@@ -17,7 +17,9 @@ final dioProvider = Provider<Dio>((ref) {
     BaseOptions(
       baseUrl: config.apiBaseUrl,
       connectTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
+      // Web 의 fetch 기반 adapter 는 request body 가 없는 요청에서
+      // sendTimeout 을 지원하지 않아 GET 요청마다 경고를 남긴다.
+      sendTimeout: kIsWeb ? null : const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       contentType: Headers.jsonContentType,
       responseType: ResponseType.json,
