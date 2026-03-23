@@ -97,8 +97,8 @@ flowchart TD
     G -- 성공 --> H[토큰 저장 후 auth/me 재검증]
     H --> F
     G -- 실패 --> D
-    D --> I[/login]
-    F --> J[/home]
+    D --> I["/login"]
+    F --> J["/home"]
     I --> K[로그인 요청]
     K --> L[토큰 저장 + 세션 반영]
     L --> J
