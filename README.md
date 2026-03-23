@@ -126,6 +126,22 @@ flowchart TD
   - 기본값: `dev`
   - 지원값: `dev`, `staging`, `prod`
 
+## 환경 배너 확인
+
+- 비생산 환경에서는 우상단에 현재 실행 환경을 표시하는 배너가 보입니다.
+- `dev` 에서는 `DEV`, `staging` 에서는 `STAGING` 이 표시됩니다.
+- `prod` 에서는 배너가 표시되지 않습니다.
+
+실행 예시:
+
+```bash
+flutter run --dart-define=APP_ENV=dev
+flutter run --dart-define=APP_ENV=staging
+flutter run --dart-define=APP_ENV=prod
+```
+
+`APP_ENV` 를 지정하지 않으면 기본값은 `dev` 입니다.
+
 ## 플랫폼 메모
 
 - 웹은 `PathUrlStrategy` 를 사용하므로 배포 서버에서 모든 경로를 `index.html` 로 rewrite 해야 합니다.

@@ -14,14 +14,17 @@ class App extends ConsumerWidget {
     final config = ref.watch(appConfigProvider);
     final router = ref.watch(appRouterProvider);
 
-    return EnvironmentBanner(
-      environment: config.environment,
-      child: MaterialApp.router(
-        title: config.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light(),
-        routerConfig: router,
-      ),
+    return MaterialApp.router(
+      title: config.appName,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      routerConfig: router,
+      builder: (context, child) {
+        return EnvironmentBanner(
+          environment: config.environment,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
