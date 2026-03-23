@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/config/template_example.dart';
 import '../../../core/errors/app_failure.dart';
 import '../application/sign_in_controller.dart';
 
@@ -22,10 +23,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
     _usernameController = TextEditingController(
-      text: kDebugMode ? 'emilys' : '',
+      text: kDebugMode ? TemplateExample.exampleUsername : '',
     );
     _passwordController = TextEditingController(
-      text: kDebugMode ? 'emilyspass' : '',
+      text: kDebugMode ? TemplateExample.examplePassword : '',
     );
   }
 
@@ -99,7 +100,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'DummyJSON 인증 흐름을 기준으로 세션 복구, 라우트 가드, 홈 진입까지 한 번에 확인할 수 있습니다.',
+                                  TemplateExample.loginDescription,
                                   style: theme.textTheme.bodyLarge,
                                 ),
                                 const SizedBox(height: 20),
@@ -109,7 +110,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   children: const <Widget>[
                                     Chip(label: Text('Riverpod 3')),
                                     Chip(label: Text('go_router')),
-                                    Chip(label: Text('DummyJSON Auth')),
+                                    Chip(
+                                      label: Text(
+                                        TemplateExample.authChipLabel,
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 if (pendingRoute != null &&
@@ -123,8 +128,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 const SizedBox(height: 20),
                                 const _NoticeCard(
                                   label: '예제 계정',
-                                  value:
-                                      'username: emilys / password: emilyspass',
+                                  value: TemplateExample
+                                      .exampleCredentialsDescription,
                                 ),
                                 const SizedBox(height: 24),
                                 TextFormField(
@@ -135,7 +140,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ],
                                   decoration: const InputDecoration(
                                     labelText: 'Username',
-                                    hintText: 'emilys',
+                                    hintText: TemplateExample.exampleUsername,
                                   ),
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
@@ -153,7 +158,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ],
                                   decoration: const InputDecoration(
                                     labelText: 'Password',
-                                    hintText: 'emilyspass',
+                                    hintText: TemplateExample.examplePassword,
                                   ),
                                   onFieldSubmitted: (_) => _submit(),
                                   validator: (value) {

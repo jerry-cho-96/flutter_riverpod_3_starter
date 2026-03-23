@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/config/template_example.dart';
 import '../../../core/presentation/async_value_view.dart';
 import '../../auth/application/session_controller.dart';
 import '../../auth/application/session_state.dart';
@@ -35,12 +36,12 @@ class HomeScreen extends ConsumerWidget {
           _ProfileSummary(user: user, apiBaseUrl: config.apiBaseUrl),
           const SizedBox(height: 20),
           Text(
-            'DummyJSON 상품 예시',
+            TemplateExample.productsTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
-            '인증 세션과 별개로 네트워크 계층, usecase, DTO 매핑, pull-to-refresh 흐름을 확인할 수 있는 샘플입니다.',
+            TemplateExample.productsDescription,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),

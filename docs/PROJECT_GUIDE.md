@@ -23,6 +23,8 @@
 - `go_router` 기반 라우팅
 - usecase 기반 비즈니스 흐름 분리
 
+샘플 앱에 들어간 예제 계정, 화면 문구, DummyJSON 전용 인증 옵션은 `lib/core/config/template_example.dart` 에 모아 두었습니다. 템플릿을 실제 서비스로 전환할 때는 이 파일과 각 feature 의 datasource 구현부터 교체하면 됩니다.
+
 핵심 원칙은 하나입니다.
 
 `화면은 비즈니스 로직을 몰라야 하고, 비즈니스 로직은 UI를 몰라야 한다.`
@@ -59,7 +61,12 @@ lib/
       domain/
       presentation/
       home_providers.dart
+assets/
+  images/          일반 이미지
+  icons/           앱/feature 아이콘
 ```
+
+자산 경로 문자열은 `lib/core/config/app_assets.dart` 에서 공통 관리합니다. 새 이미지를 추가할 때는 `AppAssets.image('file.png')`, 아이콘은 `AppAssets.icon('file.png')` 패턴으로 연결하면 경로 하드코딩을 줄일 수 있습니다.
 
 ## 3. 계층별 역할
 

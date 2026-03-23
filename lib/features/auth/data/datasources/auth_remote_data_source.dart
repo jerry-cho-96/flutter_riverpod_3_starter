@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/config/template_example.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/models/app_exception.dart';
 import '../models/auth_response_dto.dart';
@@ -38,7 +39,7 @@ class AuthRemoteDataSource {
         '/auth/refresh',
         data: <String, Object>{
           'refreshToken': refreshToken,
-          'expiresInMins': 30,
+          'expiresInMins': TemplateExample.authSessionExpiresInMinutes,
         },
         options: Options(extra: <String, Object>{'skipAuth': true}),
       );
@@ -63,7 +64,7 @@ class AuthRemoteDataSource {
         data: <String, Object>{
           'username': username.trim(),
           'password': password,
-          'expiresInMins': 30,
+          'expiresInMins': TemplateExample.authSessionExpiresInMinutes,
         },
         options: Options(extra: <String, Object>{'skipAuth': true}),
       );

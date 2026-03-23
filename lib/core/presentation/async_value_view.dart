@@ -22,6 +22,7 @@ class AsyncValueView<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return value.when(
+      skipLoadingOnReload: true,
       data: data,
       loading: () => _StatusBox(
         icon: const CircularProgressIndicator(),

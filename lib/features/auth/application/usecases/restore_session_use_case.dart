@@ -49,6 +49,9 @@ class RestoreSessionUseCase {
     final accessToken = await _tokenStorage.readAccessToken();
     final refreshToken = await _tokenStorage.readRefreshToken();
     if (accessToken == null || refreshToken == null) {
+      if (accessToken != null || refreshToken != null) {
+        await _tokenStorage.clear();
+      }
       return const RestoreSessionUnauthenticated();
     }
     final tokens = AuthTokens(

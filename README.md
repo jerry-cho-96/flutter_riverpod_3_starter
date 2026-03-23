@@ -44,6 +44,8 @@ flutter run -t lib/main_production.dart
 - username: `emilys`
 - password: `emilyspass`
 
+예제 화면 문구, 샘플 계정, DummyJSON 인증 옵션은 [template_example.dart](./lib/core/config/template_example.dart) 에 모아 두었습니다. 실제 프로젝트로 전환할 때는 이 파일과 각 feature datasource 구현을 먼저 교체하면 됩니다.
+
 ## 디렉터리 구조
 
 ```text
@@ -92,7 +94,12 @@ test/
   home/
   router/
   helpers/
+assets/
+  images/
+  icons/
 ```
+
+자산 경로 상수는 [app_assets.dart](./lib/core/config/app_assets.dart) 에 두었습니다. 이미지 추가 시 `AppAssets.image('logo.png')`, 아이콘 추가 시 `AppAssets.icon('app_icon.png')` 형태로 바로 연결할 수 있습니다.
 
 ## 아키텍처 원칙
 

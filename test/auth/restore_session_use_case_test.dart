@@ -18,6 +18,20 @@ void main() {
       expect(result, isA<RestoreSessionUnauthenticated>());
     });
 
+    test('토큰이 일부만 남아 있으면 저장소를 비우고 unauthenticated 를 반환한다', () async {
+      final storage = FakeTokenStorage()..storedAccessToken = 'access-only';
+      final useCase = RestoreSessionUseCase(
+        authRepository: FakeAuthRepository(),
+        tokenStorage: storage,
+      );
+
+      final result = await useCase.call();
+
+      expect(result, isA<RestoreSessionUnauthenticated>());
+      expect(storage.storedTokens, isNull);
+      expect(storage.clearCallCount, 1);
+    });
+
     test('저장된 토큰이 유효하면 authenticated 를 반환한다', () async {
       final tokens = createTokens();
       final user = createUser();

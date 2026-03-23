@@ -13,8 +13,8 @@ class ProductsController extends _$ProductsController {
   }
 
   Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(_load);
+    ref.invalidateSelf();
+    await future;
   }
 
   Future<List<Product>> _load() async {
