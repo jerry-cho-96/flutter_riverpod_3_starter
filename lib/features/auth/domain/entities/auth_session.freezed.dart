@@ -11,7 +11,6 @@ part of 'auth_session.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
-
 /// @nodoc
 mixin _$AuthSession {
 
@@ -22,8 +21,6 @@ mixin _$AuthSession {
 @pragma('vm:prefer-inline')
 $AuthSessionCopyWith<AuthSession> get copyWith => _$AuthSessionCopyWithImpl<AuthSession>(this as AuthSession, _$identity);
 
-  /// Serializes this AuthSession to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -31,7 +28,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthSession&&(identical(other.user, user) || other.user == user)&&(identical(other.tokens, tokens) || other.tokens == tokens));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,user,tokens);
 
@@ -225,11 +222,11 @@ return $default(_that.user,_that.tokens);case _:
 }
 
 /// @nodoc
-@JsonSerializable()
+
 
 class _AuthSession implements AuthSession {
   const _AuthSession({required this.user, required this.tokens});
-  factory _AuthSession.fromJson(Map<String, dynamic> json) => _$AuthSessionFromJson(json);
+  
 
 @override final  AppUser user;
 @override final  AuthTokens tokens;
@@ -240,17 +237,14 @@ class _AuthSession implements AuthSession {
 @pragma('vm:prefer-inline')
 _$AuthSessionCopyWith<_AuthSession> get copyWith => __$AuthSessionCopyWithImpl<_AuthSession>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$AuthSessionToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthSession&&(identical(other.user, user) || other.user == user)&&(identical(other.tokens, tokens) || other.tokens == tokens));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,user,tokens);
 

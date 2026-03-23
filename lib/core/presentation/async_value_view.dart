@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../errors/app_failure.dart';
-import '../network/models/app_exception.dart';
 
 typedef AsyncValueBuilder<T> = Widget Function(T value);
 
@@ -32,7 +31,6 @@ class AsyncValueView<T> extends StatelessWidget {
         icon: const Icon(Icons.error_outline_rounded, size: 32),
         message: switch (error) {
           AppFailure(:final message) => message,
-          AppException(:final message) => message,
           _ => '알 수 없는 오류가 발생했습니다.',
         },
         onRetry: onRetry,

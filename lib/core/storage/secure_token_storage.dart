@@ -1,6 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import 'auth_tokens.dart';
 import 'token_storage.dart';
 
 class SecureTokenStorage implements TokenStorage {
@@ -15,23 +14,21 @@ class SecureTokenStorage implements TokenStorage {
   }
 
   @override
-  Future<AuthTokens?> read() async {
-    final accessToken = await _storage.read(key: accessTokenStorageKey);
-    final refreshToken = await _storage.read(key: refreshTokenStorageKey);
-
-    if (accessToken == null || refreshToken == null) {
-      return null;
-    }
-
-    return AuthTokens(accessToken: accessToken, refreshToken: refreshToken);
+  Future<String?> readAccessToken() async {
+    return _storage.read(key: accessTokenStorageKey);
   }
 
   @override
-  Future<void> save(AuthTokens tokens) async {
-    await _storage.write(key: accessTokenStorageKey, value: tokens.accessToken);
-    await _storage.write(
-      key: refreshTokenStorageKey,
-      value: tokens.refreshToken,
-    );
+  Future<String?> readRefreshToken() async {
+    return _storage.read(key: refreshTokenStorageKey);
+  }
+
+  @override
+  Future<void> save({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await _storage.write(key: accessTokenStorageKey, value: accessToken);
+    await _storage.write(key: refreshTokenStorageKey, value: refreshToken);
   }
 }

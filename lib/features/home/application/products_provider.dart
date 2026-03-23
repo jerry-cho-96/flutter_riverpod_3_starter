@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/errors/app_failure.dart';
 import '../domain/entities/product.dart';
 import 'usecases/get_products_use_case.dart';
 
@@ -25,10 +24,7 @@ class ProductsController extends _$ProductsController {
 
     return result.when(
       success: (products) => products,
-      failure: (error) => throw AppFailure.fromObject(
-        error,
-        fallbackMessage: '상품 목록을 불러오지 못했습니다.',
-      ),
+      failure: (error) => throw error,
     );
   }
 }

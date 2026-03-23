@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'auth_tokens.dart';
 import 'secure_token_storage.dart';
 import 'shared_preferences_token_storage.dart';
 
@@ -11,9 +10,14 @@ const String accessTokenStorageKey = 'auth_access_token';
 const String refreshTokenStorageKey = 'auth_refresh_token';
 
 abstract interface class TokenStorage {
-  Future<AuthTokens?> read();
+  Future<String?> readAccessToken();
 
-  Future<void> save(AuthTokens tokens);
+  Future<String?> readRefreshToken();
+
+  Future<void> save({
+    required String accessToken,
+    required String refreshToken,
+  });
 
   Future<void> clear();
 }

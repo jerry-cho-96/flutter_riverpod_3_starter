@@ -2,11 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/network/models/app_exception.dart';
-import '../../../../core/storage/auth_tokens.dart';
 import '../../../../core/storage/token_storage.dart';
 import '../../auth_providers.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/value_objects/auth_tokens.dart';
 
 final restoreSessionUseCaseProvider = Provider<RestoreSessionUseCase>((ref) {
   return RestoreSessionUseCase(
@@ -46,10 +46,15 @@ class RestoreSessionUseCase {
   final TokenStorage _tokenStorage;
 
   Future<RestoreSessionOutcome> call() async {
-    final tokens = await _tokenStorage.read();
-    if (tokens == null) {
+    final accessToken = await _tokenStorage.readAccessToken();
+    final refreshToken = await _tokenStorage.readRefreshToken();
+    if (accessToken == null || refreshToken == null) {
       return const RestoreSessionUnauthenticated();
     }
+    final tokens = AuthTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
 
     try {
       final user = await _authRepository.fetchCurrentUser();
@@ -77,7 +82,10 @@ class RestoreSessionUseCase {
       final refreshedTokens = await _authRepository.refreshSession(
         refreshToken: tokens.refreshToken,
       );
-      await _tokenStorage.save(refreshedTokens);
+      await _tokenStorage.save(
+        accessToken: refreshedTokens.accessToken,
+        refreshToken: refreshedTokens.refreshToken,
+      );
       final user = await _authRepository.fetchCurrentUser();
 
       return RestoreSessionAuthenticated(

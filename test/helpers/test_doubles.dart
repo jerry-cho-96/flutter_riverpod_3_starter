@@ -1,8 +1,10 @@
-import 'package:riverpod_origin_template/core/storage/auth_tokens.dart';
 import 'package:riverpod_origin_template/core/storage/token_storage.dart';
 import 'package:riverpod_origin_template/features/auth/domain/entities/app_user.dart';
 import 'package:riverpod_origin_template/features/auth/domain/entities/auth_session.dart';
 import 'package:riverpod_origin_template/features/auth/domain/repositories/auth_repository.dart';
+import 'package:riverpod_origin_template/features/auth/domain/value_objects/auth_tokens.dart';
+import 'package:riverpod_origin_template/features/home/domain/entities/product.dart';
+import 'package:riverpod_origin_template/features/home/domain/repositories/products_repository.dart';
 
 AuthTokens createTokens({
   String accessToken = 'access-token',
@@ -37,25 +39,46 @@ AuthSession createSession({AuthTokens? tokens, AppUser? user}) {
 }
 
 class FakeTokenStorage implements TokenStorage {
-  FakeTokenStorage([this.storedTokens]);
+  FakeTokenStorage([AuthTokens? tokens])
+    : storedAccessToken = tokens?.accessToken,
+      storedRefreshToken = tokens?.refreshToken;
 
-  AuthTokens? storedTokens;
+  String? storedAccessToken;
+  String? storedRefreshToken;
   int saveCallCount = 0;
   int clearCallCount = 0;
+
+  AuthTokens? get storedTokens {
+    final accessToken = storedAccessToken;
+    final refreshToken = storedRefreshToken;
+    if (accessToken == null || refreshToken == null) {
+      return null;
+    }
+
+    return AuthTokens(accessToken: accessToken, refreshToken: refreshToken);
+  }
 
   @override
   Future<void> clear() async {
     clearCallCount += 1;
-    storedTokens = null;
+    storedAccessToken = null;
+    storedRefreshToken = null;
   }
 
   @override
-  Future<AuthTokens?> read() async => storedTokens;
+  Future<String?> readAccessToken() async => storedAccessToken;
 
   @override
-  Future<void> save(AuthTokens tokens) async {
+  Future<String?> readRefreshToken() async => storedRefreshToken;
+
+  @override
+  Future<void> save({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
     saveCallCount += 1;
-    storedTokens = tokens;
+    storedAccessToken = accessToken;
+    storedRefreshToken = refreshToken;
   }
 }
 
@@ -107,6 +130,63 @@ class FakeAuthRepository implements AuthRepository {
     return _resolve<AuthSession>(
       signInResult,
       fallback: StateError('No sign-in result configured'),
+    );
+  }
+
+  T _resolve<T>(Object? value, {required Object fallback}) {
+    final result = value ?? fallback;
+    if (result is Exception) {
+      throw result;
+    }
+    if (result is Error) {
+      throw result;
+    }
+
+    return result as T;
+  }
+}
+
+Product createProduct({
+  int id = 1,
+  String title = 'Doc-friendly Desk Lamp',
+  String description = 'A sample product for testing.',
+  String category = 'home-decoration',
+  double price = 49.99,
+  double rating = 4.5,
+  int stock = 12,
+  String? brand = 'Origin',
+  String? thumbnail = 'https://dummyjson.com/image/400x400',
+}) {
+  return Product(
+    id: id,
+    title: title,
+    description: description,
+    category: category,
+    price: price,
+    rating: rating,
+    stock: stock,
+    brand: brand,
+    thumbnail: thumbnail,
+  );
+}
+
+class FakeProductsRepository implements ProductsRepository {
+  Object? fetchProductsResult;
+  int fetchProductsCallCount = 0;
+  int? lastLimit;
+  int? lastSkip;
+
+  @override
+  Future<List<Product>> fetchProducts({
+    required int limit,
+    required int skip,
+  }) async {
+    fetchProductsCallCount += 1;
+    lastLimit = limit;
+    lastSkip = skip;
+    return _resolve<List<Product>>(
+      fetchProductsResult,
+      fallback: <Product>[createProduct()],
     );
   }
 

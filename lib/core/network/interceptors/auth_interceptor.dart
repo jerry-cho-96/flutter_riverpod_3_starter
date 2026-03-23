@@ -21,8 +21,7 @@ class AuthInterceptor extends QueuedInterceptor {
       return;
     }
 
-    final tokens = await _tokenStorage.read();
-    final accessToken = tokens?.accessToken;
+    final accessToken = await _tokenStorage.readAccessToken();
     if (accessToken != null && accessToken.isNotEmpty) {
       options.headers[HttpHeaders.authorizationHeader] = 'Bearer $accessToken';
     }

@@ -1,6 +1,6 @@
-import '../../../../core/storage/auth_tokens.dart';
 import '../entities/app_user.dart';
 import '../entities/auth_session.dart';
+import '../value_objects/auth_tokens.dart';
 
 abstract interface class AuthRepository {
   Future<AuthSession> signIn({

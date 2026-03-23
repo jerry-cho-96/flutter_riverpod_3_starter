@@ -1,9 +1,11 @@
+import '../errors/app_failure.dart';
+
 sealed class Result<T> {
   const Result();
 
   R when<R>({
     required R Function(T value) success,
-    required R Function(Object error) failure,
+    required R Function(AppFailure error) failure,
   }) {
     return switch (this) {
       Success<T>(:final value) => success(value),
@@ -21,5 +23,5 @@ final class Success<T> extends Result<T> {
 final class Failure<T> extends Result<T> {
   const Failure(this.error);
 
-  final Object error;
+  final AppFailure error;
 }

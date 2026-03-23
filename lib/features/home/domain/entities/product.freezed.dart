@@ -11,7 +11,6 @@ part of 'product.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
-
 /// @nodoc
 mixin _$Product {
 
@@ -22,8 +21,6 @@ mixin _$Product {
 @pragma('vm:prefer-inline')
 $ProductCopyWith<Product> get copyWith => _$ProductCopyWithImpl<Product>(this as Product, _$identity);
 
-  /// Serializes this Product to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -31,7 +28,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is Product&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.category, category) || other.category == category)&&(identical(other.price, price) || other.price == price)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.stock, stock) || other.stock == stock)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.thumbnail, thumbnail) || other.thumbnail == thumbnail));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,id,title,description,category,price,rating,stock,brand,thumbnail);
 
@@ -214,11 +211,11 @@ return $default(_that.id,_that.title,_that.description,_that.category,_that.pric
 }
 
 /// @nodoc
-@JsonSerializable()
+
 
 class _Product implements Product {
   const _Product({required this.id, required this.title, required this.description, required this.category, required this.price, required this.rating, required this.stock, this.brand, this.thumbnail});
-  factory _Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);
+  
 
 @override final  int id;
 @override final  String title;
@@ -236,17 +233,14 @@ class _Product implements Product {
 @pragma('vm:prefer-inline')
 _$ProductCopyWith<_Product> get copyWith => __$ProductCopyWithImpl<_Product>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$ProductToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _Product&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.category, category) || other.category == category)&&(identical(other.price, price) || other.price == price)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.stock, stock) || other.stock == stock)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.thumbnail, thumbnail) || other.thumbnail == thumbnail));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,id,title,description,category,price,rating,stock,brand,thumbnail);
 

@@ -11,7 +11,6 @@ part of 'auth_tokens.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
-
 /// @nodoc
 mixin _$AuthTokens {
 
@@ -22,8 +21,6 @@ mixin _$AuthTokens {
 @pragma('vm:prefer-inline')
 $AuthTokensCopyWith<AuthTokens> get copyWith => _$AuthTokensCopyWithImpl<AuthTokens>(this as AuthTokens, _$identity);
 
-  /// Serializes this AuthTokens to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -31,7 +28,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthTokens&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,accessToken,refreshToken);
 
@@ -207,11 +204,11 @@ return $default(_that.accessToken,_that.refreshToken);case _:
 }
 
 /// @nodoc
-@JsonSerializable()
+
 
 class _AuthTokens implements AuthTokens {
   const _AuthTokens({required this.accessToken, required this.refreshToken});
-  factory _AuthTokens.fromJson(Map<String, dynamic> json) => _$AuthTokensFromJson(json);
+  
 
 @override final  String accessToken;
 @override final  String refreshToken;
@@ -222,17 +219,14 @@ class _AuthTokens implements AuthTokens {
 @pragma('vm:prefer-inline')
 _$AuthTokensCopyWith<_AuthTokens> get copyWith => __$AuthTokensCopyWithImpl<_AuthTokens>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$AuthTokensToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthTokens&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,accessToken,refreshToken);
 

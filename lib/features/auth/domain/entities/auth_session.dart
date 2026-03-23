@@ -1,10 +1,9 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../../core/storage/auth_tokens.dart';
 import 'app_user.dart';
+import '../value_objects/auth_tokens.dart';
 
 part 'auth_session.freezed.dart';
-part 'auth_session.g.dart';
 
 @freezed
 abstract class AuthSession with _$AuthSession {
@@ -12,7 +11,4 @@ abstract class AuthSession with _$AuthSession {
     required AppUser user,
     required AuthTokens tokens,
   }) = _AuthSession;
-
-  factory AuthSession.fromJson(Map<String, dynamic> json) =>
-      _$AuthSessionFromJson(json);
 }

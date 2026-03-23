@@ -13,6 +13,9 @@ class PersistSessionUseCase {
   final TokenStorage _tokenStorage;
 
   Future<void> call(AuthSession session) async {
-    await _tokenStorage.save(session.tokens);
+    await _tokenStorage.save(
+      accessToken: session.tokens.accessToken,
+      refreshToken: session.tokens.refreshToken,
+    );
   }
 }

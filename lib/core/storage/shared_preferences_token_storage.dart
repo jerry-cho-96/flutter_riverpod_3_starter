@@ -1,6 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'auth_tokens.dart';
 import 'token_storage.dart';
 
 class SharedPreferencesTokenStorage implements TokenStorage {
@@ -15,20 +14,21 @@ class SharedPreferencesTokenStorage implements TokenStorage {
   }
 
   @override
-  Future<AuthTokens?> read() async {
-    final accessToken = await _preferences.getString(accessTokenStorageKey);
-    final refreshToken = await _preferences.getString(refreshTokenStorageKey);
-
-    if (accessToken == null || refreshToken == null) {
-      return null;
-    }
-
-    return AuthTokens(accessToken: accessToken, refreshToken: refreshToken);
+  Future<String?> readAccessToken() async {
+    return _preferences.getString(accessTokenStorageKey);
   }
 
   @override
-  Future<void> save(AuthTokens tokens) async {
-    await _preferences.setString(accessTokenStorageKey, tokens.accessToken);
-    await _preferences.setString(refreshTokenStorageKey, tokens.refreshToken);
+  Future<String?> readRefreshToken() async {
+    return _preferences.getString(refreshTokenStorageKey);
+  }
+
+  @override
+  Future<void> save({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await _preferences.setString(accessTokenStorageKey, accessToken);
+    await _preferences.setString(refreshTokenStorageKey, refreshToken);
   }
 }

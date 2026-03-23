@@ -1,7 +1,7 @@
-import '../../../../core/storage/auth_tokens.dart';
 import '../../domain/entities/app_user.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/value_objects/auth_tokens.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../models/refresh_token_response_dto.dart';
 import '../models/user_dto.dart';

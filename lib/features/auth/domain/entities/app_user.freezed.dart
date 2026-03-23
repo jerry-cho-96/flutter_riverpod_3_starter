@@ -11,7 +11,6 @@ part of 'app_user.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
-
 /// @nodoc
 mixin _$AppUser {
 
@@ -22,8 +21,6 @@ mixin _$AppUser {
 @pragma('vm:prefer-inline')
 $AppUserCopyWith<AppUser> get copyWith => _$AppUserCopyWithImpl<AppUser>(this as AppUser, _$identity);
 
-  /// Serializes this AppUser to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -31,7 +28,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is AppUser&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.image, image) || other.image == image));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,id,username,email,firstName,lastName,image);
 
@@ -211,11 +208,11 @@ return $default(_that.id,_that.username,_that.email,_that.firstName,_that.lastNa
 }
 
 /// @nodoc
-@JsonSerializable()
+
 
 class _AppUser implements AppUser {
   const _AppUser({required this.id, required this.username, required this.email, required this.firstName, required this.lastName, this.image});
-  factory _AppUser.fromJson(Map<String, dynamic> json) => _$AppUserFromJson(json);
+  
 
 @override final  int id;
 @override final  String username;
@@ -230,17 +227,14 @@ class _AppUser implements AppUser {
 @pragma('vm:prefer-inline')
 _$AppUserCopyWith<_AppUser> get copyWith => __$AppUserCopyWithImpl<_AppUser>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$AppUserToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppUser&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.email, email) || other.email == email)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.image, image) || other.image == image));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,id,username,email,firstName,lastName,image);
 
