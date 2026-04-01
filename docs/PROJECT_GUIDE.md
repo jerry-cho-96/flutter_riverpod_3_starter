@@ -75,6 +75,7 @@ assets/
 화면과 위젯이 있는 계층입니다.
 
 - `Widget`, `ConsumerWidget`, `ConsumerStatefulWidget`
+- feature 전용 `State/Event mixin class`
 - 사용자 입력 처리
 - provider 구독
 - 로딩/에러/성공 상태 렌더링
@@ -85,6 +86,8 @@ assets/
 - repository 직접 호출
 - 토큰 저장 직접 처리
 - 비즈니스 규칙 판단
+
+`presentation` 에서 provider 접근 지점이 많아질 경우에는 화면 전용 `State/Event mixin class` 로 `ref.watch/read` 와 controller 호출을 묶을 수 있습니다. 다만 이 mixin 은 provider facade 여야 하며, usecase 수준의 비즈니스 로직이나 repository 접근을 가지면 안 됩니다.
 
 예시:
 
@@ -106,6 +109,7 @@ assets/
 - `SessionController`
 - `SignInController`
 - `ProductsController`
+- `ProductDetailController`
 
 #### usecase 를 둔 이유
 
@@ -238,6 +242,17 @@ feature root providers -> data 구현체 조립
 - `restorationFailed` 이면 splash 유지 + 재시도 UI
 - `unauthenticated` 이면 login 이동
 - `authenticated` 이면 shell/home 진입
+
+### 6) 페이지 전용 route argument 관리
+
+상품 상세처럼 route argument 를 여러 하위 위젯에서 함께 써야 하는 화면은 페이지 내부에 별도 `ProviderScope` 를 열고 argument provider 를 override 하는 방식을 사용합니다.
+
+- 페이지 진입점이 `productId` 를 받음
+- 페이지 최상단 `ProviderScope` 에서 `productDetailArgumentProvider.overrideWithValue(productId)` 수행
+- 하위 위젯과 controller 는 동일한 argument provider 를 참조
+- presentation 에서 `productId` 를 자식 위젯마다 계속 전달하지 않음
+
+이 방식은 page-scoped 상태에 적합합니다. 전역 app scope 나 feature root provider 에 route argument 를 섞지 않는 것이 중요합니다.
 
 ## 6. Riverpod 사용 규칙
 

@@ -21,6 +21,15 @@ class ProductsRepositoryImpl implements ProductsRepository {
     return response.products.map(_mapProduct).toList(growable: false);
   }
 
+  @override
+  Future<Product> fetchProductDetail({required int productId}) async {
+    final product = await _remoteDataSource.fetchProductDetail(
+      productId: productId,
+    );
+
+    return _mapProduct(product);
+  }
+
   Product _mapProduct(ProductDto dto) {
     return Product(
       id: dto.id,

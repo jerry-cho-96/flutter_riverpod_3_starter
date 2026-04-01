@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../application/session_controller.dart';
-import '../application/session_state.dart';
+import 'auth_presentation_mixins.dart';
 
-class SplashScreen extends ConsumerWidget {
+class SplashScreen extends ConsumerWidget
+    with AuthPresentationStateMixin, AuthPresentationEventMixin {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final sessionState = ref.watch(sessionControllerProvider);
-    final failureMessage = switch (sessionState) {
-      SessionRestorationFailed(:final failure) => failure.message,
-      _ => null,
-    };
+    final failureMessage = restorationFailureMessage(ref);
 
     return Scaffold(
       body: DecoratedBox(
@@ -73,11 +69,7 @@ class SplashScreen extends ConsumerWidget {
                 )
               else
                 FilledButton.icon(
-                  onPressed: () async {
-                    await ref
-                        .read(sessionControllerProvider.notifier)
-                        .restoreSession();
-                  },
+                  onPressed: () async => retrySessionRestore(ref),
                   icon: const Icon(Icons.refresh_rounded),
                   label: const Text('세션 복구 다시 시도'),
                 ),

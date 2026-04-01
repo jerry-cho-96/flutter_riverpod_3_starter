@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/config/template_example.dart';
-import '../../../core/errors/app_failure.dart';
-import '../application/sign_in_controller.dart';
+import 'auth_presentation_mixins.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -14,7 +12,8 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with AuthPresentationStateMixin, AuthPresentationEventMixin {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _usernameController;
   late final TextEditingController _passwordController;
@@ -39,20 +38,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<void>>(signInControllerProvider, (previous, next) {
-      if (!next.hasError || previous == next) {
-        return;
-      }
+    listenSignInFailure(ref, context);
 
-      final error = next.error;
-      final message = error is AppFailure ? error.message : '로그인에 실패했습니다.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-    });
-
-    final signInState = ref.watch(signInControllerProvider);
-    final pendingRoute = GoRouterState.of(context).uri.queryParameters['from'];
+    final signInAsync = watchSignInState(ref);
+    final pendingRoute = this.pendingRoute(context);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -170,10 +159,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                                 const SizedBox(height: 24),
                                 FilledButton.icon(
-                                  onPressed: signInState.isLoading
+                                  onPressed: signInAsync.isLoading
                                       ? null
                                       : _submit,
-                                  icon: signInState.isLoading
+                                  icon: signInAsync.isLoading
                                       ? const SizedBox(
                                           width: 18,
                                           height: 18,
@@ -183,7 +172,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         )
                                       : const Icon(Icons.login_rounded),
                                   label: Text(
-                                    signInState.isLoading ? '로그인 중...' : '로그인',
+                                    signInAsync.isLoading ? '로그인 중...' : '로그인',
                                   ),
                                 ),
                               ],
@@ -208,12 +197,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    await ref
-        .read(signInControllerProvider.notifier)
-        .signIn(
-          username: _usernameController.text,
-          password: _passwordController.text,
-        );
+    await submitSignIn(
+      ref,
+      username: _usernameController.text,
+      password: _passwordController.text,
+    );
   }
 }
 

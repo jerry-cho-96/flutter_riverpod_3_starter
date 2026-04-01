@@ -1,34 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/config/app_config.dart';
+import '../../../app/router/app_routes.dart';
 import '../../../core/config/template_example.dart';
 import '../../../core/presentation/async_value_view.dart';
-import '../../auth/application/session_controller.dart';
-import '../../auth/application/session_state.dart';
 import '../../auth/domain/entities/app_user.dart';
-import '../application/products_provider.dart';
 import '../domain/entities/product.dart';
+import 'home_presentation_mixins.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerWidget
+    with HomePresentationStateMixin, HomePresentationEventMixin {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sessionState = ref.watch(sessionControllerProvider);
-    final productsAsync = ref.watch(productsControllerProvider);
-    final config = ref.watch(appConfigProvider);
-    final user = switch (sessionState) {
-      SessionAuthenticated(:final session) => session.user,
-      _ => null,
-    };
+    final productsAsync = watchProducts(ref);
+    final config = watchAppConfig(ref);
+    final user = watchCurrentUser(ref);
 
     if (user == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
     return RefreshIndicator(
-      onRefresh: () => ref.read(productsControllerProvider.notifier).refresh(),
+      onRefresh: () => refreshProducts(ref),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(20),
@@ -47,8 +43,7 @@ class HomeScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           AsyncValueView<List<Product>>(
             value: productsAsync,
-            onRetry: () =>
-                ref.read(productsControllerProvider.notifier).refresh(),
+            onRetry: () => refreshProducts(ref),
             data: (products) {
               return Column(
                 children: <Widget>[
@@ -57,7 +52,18 @@ class HomeScreen extends ConsumerWidget {
                     index < products.length;
                     index++
                   ) ...<Widget>[
-                    _ProductCard(product: products[index]),
+                    _ProductCard(
+                      product: products[index],
+                      onTap: () {
+                        context.push(
+                          AppRoute.productDetail.location(
+                            pathParameters: <String, String>{
+                              'productId': products[index].id.toString(),
+                            },
+                          ),
+                        );
+                      },
+                    ),
                     if (index != products.length - 1)
                       const SizedBox(height: 12),
                   ],
@@ -131,76 +137,81 @@ class _ProfileSummary extends StatelessWidget {
 }
 
 class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
+  const _ProductCard({required this.product, required this.onTap});
 
   final Product product;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: SizedBox(
-                width: 92,
-                height: 92,
-                child: product.thumbnail != null
-                    ? Image.network(
-                        product.thumbnail!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const ColoredBox(
-                            color: Color(0xFFE7ECE8),
-                            child: Icon(Icons.image_not_supported_rounded),
-                          );
-                        },
-                      )
-                    : const ColoredBox(
-                        color: Color(0xFFE7ECE8),
-                        child: Icon(Icons.image_outlined),
-                      ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(product.title, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Text(
-                    product.description,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: <Widget>[
-                      Chip(label: Text(product.category)),
-                      Chip(
-                        label: Text('\$${product.price.toStringAsFixed(2)}'),
-                      ),
-                      Chip(
-                        label: Text(
-                          'rating ${product.rating.toStringAsFixed(1)}',
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: SizedBox(
+                  width: 92,
+                  height: 92,
+                  child: product.thumbnail != null
+                      ? Image.network(
+                          product.thumbnail!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const ColoredBox(
+                              color: Color(0xFFE7ECE8),
+                              child: Icon(Icons.image_not_supported_rounded),
+                            );
+                          },
+                        )
+                      : const ColoredBox(
+                          color: Color(0xFFE7ECE8),
+                          child: Icon(Icons.image_outlined),
                         ),
-                      ),
-                      Chip(label: Text('stock ${product.stock}')),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(product.title, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    Text(
+                      product.description,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: <Widget>[
+                        Chip(label: Text(product.category)),
+                        Chip(
+                          label: Text('\$${product.price.toStringAsFixed(2)}'),
+                        ),
+                        Chip(
+                          label: Text(
+                            'rating ${product.rating.toStringAsFixed(1)}',
+                          ),
+                        ),
+                        Chip(label: Text('stock ${product.stock}')),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

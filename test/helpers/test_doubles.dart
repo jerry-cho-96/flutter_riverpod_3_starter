@@ -172,9 +172,12 @@ Product createProduct({
 
 class FakeProductsRepository implements ProductsRepository {
   Object? fetchProductsResult;
+  Object? fetchProductDetailResult;
   int fetchProductsCallCount = 0;
+  int fetchProductDetailCallCount = 0;
   int? lastLimit;
   int? lastSkip;
+  int? lastProductId;
 
   @override
   Future<List<Product>> fetchProducts({
@@ -187,6 +190,16 @@ class FakeProductsRepository implements ProductsRepository {
     return _resolve<List<Product>>(
       fetchProductsResult,
       fallback: <Product>[createProduct()],
+    );
+  }
+
+  @override
+  Future<Product> fetchProductDetail({required int productId}) async {
+    fetchProductDetailCallCount += 1;
+    lastProductId = productId;
+    return _resolve<Product>(
+      fetchProductDetailResult,
+      fallback: createProduct(id: productId),
     );
   }
 

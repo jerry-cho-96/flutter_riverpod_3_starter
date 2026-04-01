@@ -68,4 +68,9 @@ class _QueuedProductsRepository implements ProductsRepository {
 
     return _requests.removeAt(0).future;
   }
+
+  @override
+  Future<Product> fetchProductDetail({required int productId}) {
+    throw UnimplementedError('상품 상세 조회는 이 테스트에서 사용하지 않습니다.');
+  }
 }

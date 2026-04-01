@@ -104,6 +104,8 @@ assets/
 ## 아키텍처 원칙
 
 - `presentation` 은 provider 를 구독하고 사용자 이벤트만 전달합니다.
+- `presentation` 에서 provider 접근 지점이 많아지면 feature 전용 `State/Event mixin class` 로 `ref.watch/read` 를 중앙화할 수 있습니다.
+- presentation mixin 은 화면 전용 facade 역할만 하며, controller 호출 위임과 단순 파생 상태까지만 담당합니다.
 - `application` 은 controller/provider 와 usecase 로 화면 흐름, side effect 를 관리합니다.
 - `domain` 은 엔티티, value object, repository 계약만 가지며 DTO/JSON/storage/network 타입을 직접 알지 않습니다.
 - `data` 는 DTO, remote/local datasource, repository 구현을 가집니다.
@@ -154,11 +156,12 @@ flowchart TD
 - 세션 복구 및 인증 라우트 가드
 - 네트워크 오류 시 세션 토큰 보존 및 splash 재시도
 - authenticated shell route 기반 확장 구조
+- `ProviderScope` override 기반 상품 상세 route argument 관리 예시
 - `APP_ENV`, `API_BASE_URL` 기반 환경 분리와 비생산 배너
 - `ProviderObserver` 및 네트워크 로깅 훅
 - bootstrap 전역 에러 처리 및 monitoring 확장 포인트
 - 홈에서 현재 사용자 정보 출력
-- `products` 목록 조회와 pull-to-refresh
+- `products` 목록/상세 조회와 pull-to-refresh
 
 ## 환경값
 
