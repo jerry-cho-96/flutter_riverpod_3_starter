@@ -10,6 +10,8 @@
 
 를 한 번에 이해할 수 있도록 작성했습니다.
 
+스타터킷 운영 기준, feature 템플릿, 폴더 유지/분리 판단 기준은 [ARCHITECTURE.md](./ARCHITECTURE.md) 를 기준 문서로 사용합니다.
+
 ## 1. 이 템플릿이 해결하려는 것
 
 이 프로젝트는 Flutter 앱에서 자주 필요한 기본 문제를 정석적으로 풀기 위한 스타터입니다.
@@ -111,6 +113,8 @@ assets/
 - `ProductsController`
 - `ProductDetailController`
 
+현재 템플릿은 `application` 루트에 controller, state, page-scoped provider 를 함께 두고 있습니다. 아직 복잡도가 낮기 때문에 유지하며, 구조가 커질 때만 `controllers/`, `states/`, `providers/`, `usecases/` 하위 폴더 분리를 검토합니다.
+
 #### usecase 를 둔 이유
 
 이 프로젝트에서 `usecase` 는 필요합니다.
@@ -161,6 +165,8 @@ assets/
 - `ProductsRemoteDataSource`
 - `AuthRepositoryImpl`
 - `ProductsRepositoryImpl`
+
+현재 DTO -> Entity 변환은 repository 구현체 내부 private mapper 로 처리합니다. 변환 분기가 커지거나 여러 응답 조합이 늘어나면 `data/mappers/` 를 도입합니다.
 
 ## 4. 의존 방향
 
@@ -285,6 +291,8 @@ feature root providers -> data 구현체 조립
 - `productsRepositoryProvider`
 - 각 usecase provider
 
+feature 루트의 `auth_providers.dart`, `home_providers.dart` 는 현재 repository wiring 전용 공개 진입점으로 사용합니다. 화면 전용 provider 나 내부 helper provider 는 여기에 추가하지 않습니다.
+
 ### Observer
 
 `core/logging/app_provider_observer.dart`
@@ -300,6 +308,14 @@ feature root providers -> data 구현체 조립
 - 인증 필요 페이지: authenticated shell 하위
 - 인증 가드: top-level `redirect`
 - 확장 방향: shell 하위에 feature route 를 추가하되, 인증 후 feature 가 2~3개를 넘기기 시작하면 feature 단위 route builder 또는 route module 로 분리
+
+현재 역할 분리는 아래 기준으로 유지합니다.
+
+- `app_routes.dart`: path/name 상수
+- `route_modules/*`: feature route 정의
+- `app_route_guard.dart`: 인증 redirect 정책
+- `app_router.dart`: 최종 `GoRouter` 조립
+- `authenticated_shell.dart`: 인증 후 공통 scaffold
 
 ### 왜 shell route 를 썼는가
 

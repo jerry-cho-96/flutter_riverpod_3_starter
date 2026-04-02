@@ -22,6 +22,7 @@ abstract interface class TokenStorage {
   Future<void> clear();
 }
 
+/// 모바일/데스크톱은 secure storage, 웹은 shared preferences 구현을 사용한다.
 final tokenStorageProvider = Provider<TokenStorage>((ref) {
   if (kIsWeb) {
     return SharedPreferencesTokenStorage(SharedPreferencesAsync());

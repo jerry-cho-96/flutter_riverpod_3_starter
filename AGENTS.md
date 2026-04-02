@@ -9,6 +9,64 @@
 - 실수로라도 실제 비밀값을 커밋하지 않습니다.
 - base URL, token, env 값은 예시값 또는 `--dart-define` 기반 설정만 사용합니다.
 - 구조를 바꿀 때는 “작동”보다 “계층 일관성”을 우선합니다.
+- 구조를 바꿀지 애매하면 먼저 `docs/ARCHITECTURE.md` 의 운영 기준과 판단 메모를 확인합니다.
+
+## 1-1. 문서 우선순위
+
+이 저장소에서 문서 충돌이나 판단 애매함이 생기면 아래 우선순위를 따릅니다.
+
+1. `AGENTS.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/PROJECT_GUIDE.md`
+4. `README.md`
+
+해석 원칙:
+
+- `AGENTS.md` 는 agent 실행 규칙과 강제 제약의 기준입니다.
+- `docs/ARCHITECTURE.md` 는 구조 유지/분리 판단 기준과 스타터킷 운영 규칙의 기준입니다.
+- `docs/PROJECT_GUIDE.md` 는 실제 코드 흐름과 구현 의도를 설명하는 가이드입니다.
+- `README.md` 는 빠른 온보딩, 실행 방법, 개요 확인용입니다.
+
+문서 간 표현 차이가 있으면 상위 우선순위 문서를 기준으로 해석하고, 필요하면 하위 문서도 함께 최신화합니다.
+
+## 1-2. 작업 유형별 참조 순서
+
+작업을 시작할 때는 아래 순서로 문서를 참조합니다.
+
+### 구조 변경 / 리팩터링
+
+1. `AGENTS.md`
+2. `docs/ARCHITECTURE.md`
+3. 관련 feature 코드
+4. `docs/PROJECT_GUIDE.md`
+
+### 새 feature / 새 API 추가
+
+1. `AGENTS.md`
+2. `docs/ARCHITECTURE.md`
+3. 동일 성격의 기존 feature 코드
+4. `docs/PROJECT_GUIDE.md`
+5. `README.md`
+
+### 라우팅 / 세션 / 인증 흐름 수정
+
+1. `AGENTS.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/PROJECT_GUIDE.md`
+4. `lib/app/router/*`, `features/auth/*`
+
+### 환경설정 / 실행 / 문서 확인
+
+1. `README.md`
+2. `AGENTS.md`
+3. `docs/PROJECT_GUIDE.md`
+4. 관련 설정 파일
+
+### 판단 원칙
+
+- 문서만 보고 충분히 결정 가능한 내용이면 구조를 성급히 바꾸지 않습니다.
+- 문서와 실제 코드가 다르면 코드를 확인한 뒤 문서를 최신화합니다.
+- 애매하면 기존 feature 의 배치 패턴을 우선 따르고, 필요할 때만 새 규칙을 도입합니다.
 
 ## 2. 이 프로젝트의 정답 아키텍처
 
@@ -26,6 +84,7 @@ data -> external(api, storage)
 - `presentation` 은 repository 를 직접 호출하면 안 됩니다.
 - `presentation` 은 `Dio`, `SharedPreferences`, `FlutterSecureStorage` 를 직접 사용하면 안 됩니다.
 - `application` 은 repository 구현체를 직접 import 하면 안 됩니다.
+- `application` 은 controller 뿐 아니라 feature-level state, page-scoped provider 를 포함할 수 있습니다.
 - controller 는 usecase 만 통해서 의존성을 받아야 합니다.
 - usecase provider 는 feature root provider 와 `core` 의 공통 provider 를 조합해 의존성을 주입받을 수 있습니다.
 - `usecase` 는 repository contract 를 사용해야 하며, data 구현 상세를 몰라야 합니다.
@@ -87,6 +146,11 @@ feature/
 - repository provider 는 `<feature>_providers.dart` 에 둡니다.
 - datasource provider 는 `data/datasources` 파일 안에 둡니다.
 - controller 는 `application` 에 두고 codegen 파일(`*.g.dart`)과 함께 관리합니다.
+- feature-level state 는 `application` 에 두고 controller 와 가까이 관리합니다.
+- page-scoped route argument provider 는 `application` 에 두고, 화면 진입점의 `ProviderScope` override 로 주입합니다.
+- `application` 하위 폴더 분리는 아직 기본값이 아닙니다.
+  - 현재처럼 파일 수가 작고 탐색 비용이 낮으면 루트 구조를 유지합니다.
+  - 생성 파일을 제외한 서로 다른 성격의 루트 파일이 5개 이상 섞이기 시작하면 `controllers/`, `states/`, `providers/`, `usecases/` 분리를 검토합니다.
 
 ## 4. Riverpod 규칙
 
@@ -96,6 +160,8 @@ feature/
 - provider 안에서 UI 관련 로직을 만들지 않습니다.
 - provider 이름은 역할이 드러나야 합니다.
   - 예: `sessionControllerProvider`, `signInUseCaseProvider`
+- feature 루트 `<feature>_providers.dart` 는 repository wiring 용 공개 DI entrypoint 로 유지합니다.
+- 화면 전용 provider, 내부 helper provider, 테스트 override 용 provider 를 `<feature>_providers.dart` 에 한꺼번에 모으지 않습니다.
 
 권장 패턴:
 
@@ -113,6 +179,10 @@ feature/
 - 새 인증 필요 화면은 해당 feature route module 에 추가합니다.
 - 새 공개 화면은 auth/public route module 에 추가합니다.
 - `app_router.dart` 는 module 조립과 redirect 유지가 우선이며, 상세 route 정의를 여기에 계속 누적하지 않습니다.
+- `app_routes.dart` 는 path/name 상수와 location 생성만 담당합니다.
+- `app_route_guard.dart` 는 인증 redirect 정책만 담당합니다.
+- `route_modules/*` 는 feature route 정의만 담당합니다.
+- `authenticated_shell.dart` 는 인증 후 공통 scaffold/layout 역할만 담당합니다.
 - protected feature 가 2~3개를 넘기기 시작하면 계속 feature 단위 route module 조립을 유지합니다.
 
 ## 6. usecase 규칙
@@ -158,6 +228,13 @@ feature/
 - domain entity/value object 에 `fromJson/toJson` 추가 금지
 - 예외를 문자열로 아무렇게나 처리 금지
 
+### DTO / 매핑 규칙
+
+- `data/models` 폴더는 외부/로컬 데이터 모델 보관 위치로 유지합니다.
+- 파일명은 `*_dto.dart` 형태로 DTO 임을 드러냅니다.
+- DTO -> Entity 변환은 우선 `data/repositories/*_impl.dart` 내부 private mapper 로 둡니다.
+- 매핑 분기가 많아지거나 repository 구현체가 길어지면 `data/mappers/` 도입을 검토합니다.
+
 ## 8. 에러 처리 규칙
 
 - network layer 는 `AppException`
@@ -174,6 +251,10 @@ feature/
 - 새로운 화면도 현재 디자인 톤을 크게 벗어나지 않게 작성합니다.
 - 로딩/에러/재시도 패턴은 `core/presentation` 공통 위젯을 우선 사용합니다.
 - shell route 구조가 있으면 공통 scaffold 를 재사용합니다.
+- `presentation` 에서 provider 접근 지점이 많아지면 화면 전용 mixin class 로 `ref.watch/read` 를 정리할 수 있습니다.
+- `*_presentation_mixins.dart` 는 실제 mixin class 인 경우에만 유지합니다.
+- presentation 파일 수가 늘어나면 `screens/`, `widgets/`, `mixins/`, `listeners/` 하위 분리를 검토합니다.
+- 화면 파일 네이밍은 `*_screen.dart` 를 기본으로 유지합니다.
 
 ## 10. 환경설정 규칙
 
@@ -200,6 +281,8 @@ feature/
 - UI, usecase, controller 에서 저장소 구현체를 직접 쓰지 않습니다.
 - 토큰 값 객체는 `features/auth/domain/value_objects` 에 두고, storage 는 문자열 저장 책임만 가집니다.
 - 토큰 저장/삭제는 usecase 또는 session controller 흐름 안에서만 수행합니다.
+- `TokenStorage` 는 저장 계약이며, 모바일/데스크톱 기본 구현은 secure storage 입니다.
+- `SharedPreferencesTokenStorage` 는 웹 환경용 대체 구현으로 취급합니다.
 
 ## 12. 문서 규칙
 
@@ -207,6 +290,7 @@ feature/
 
 - `README.md`
 - `docs/PROJECT_GUIDE.md`
+- `docs/ARCHITECTURE.md`
 - `AGENTS.md`
 
 문서 반영이 필요한데 안 했으면 작업이 덜 끝난 것입니다.
@@ -247,6 +331,7 @@ feature/
 - DTO 와 Entity 를 분리했는가?
 - UI 가 data layer 를 직접 보고 있지 않은가?
 - route 는 공개/인증 영역이 올바르게 분리됐는가?
+- 지금 구조 변경이 정말 필요한가, 아니면 `docs/ARCHITECTURE.md` 에 규칙 보강만 하면 되는가?
 
 ## 15. 작업 후 체크리스트
 
