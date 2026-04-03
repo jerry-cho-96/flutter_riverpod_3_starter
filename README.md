@@ -90,9 +90,35 @@ lib/
         entities/
         repositories/
       presentation/
+    quotes/
+      quotes_providers.dart
+      application/
+        usecases/
+      data/
+        datasources/
+        models/
+        repositories/
+      domain/
+        entities/
+        repositories/
+      presentation/
+    todos/
+      todos_providers.dart
+      application/
+        usecases/
+      data/
+        datasources/
+        models/
+        repositories/
+      domain/
+        entities/
+        repositories/
+      presentation/
 test/
   auth/
   home/
+  quotes/
+  todos/
   router/
   helpers/
 assets/
@@ -168,6 +194,8 @@ flowchart TD
 - bootstrap 전역 에러 처리 및 monitoring 확장 포인트
 - 홈에서 현재 사용자 정보 출력
 - `products` 목록/상세 조회와 pull-to-refresh
+- 별도 protected feature route module 조립 예시로 `quotes` 목록 화면 제공
+- 별도 mutation feature route 조립 예시로 `todos` 목록/추가/수정/삭제 화면 제공
 
 ## 환경값
 

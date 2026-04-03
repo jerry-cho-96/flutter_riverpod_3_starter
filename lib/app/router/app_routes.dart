@@ -2,6 +2,8 @@ enum AppRoute {
   splash(name: 'splash', path: '/splash'),
   login(name: 'login', path: '/login'),
   home(name: 'home', path: '/home'),
+  quotes(name: 'quotes', path: '/quotes'),
+  todos(name: 'todos', path: '/todos'),
   productDetail(name: 'productDetail', path: '/home/products/:productId');
 
   const AppRoute({required this.name, required this.path});

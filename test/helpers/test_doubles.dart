@@ -5,6 +5,8 @@ import 'package:riverpod_origin_template/features/auth/domain/repositories/auth_
 import 'package:riverpod_origin_template/features/auth/domain/value_objects/auth_tokens.dart';
 import 'package:riverpod_origin_template/features/home/domain/entities/product.dart';
 import 'package:riverpod_origin_template/features/home/domain/repositories/products_repository.dart';
+import 'package:riverpod_origin_template/features/quotes/domain/entities/quote.dart';
+import 'package:riverpod_origin_template/features/quotes/domain/repositories/quotes_repository.dart';
 
 AuthTokens createTokens({
   String accessToken = 'access-token',
@@ -200,6 +202,47 @@ class FakeProductsRepository implements ProductsRepository {
     return _resolve<Product>(
       fetchProductDetailResult,
       fallback: createProduct(id: productId),
+    );
+  }
+
+  T _resolve<T>(Object? value, {required Object fallback}) {
+    final result = value ?? fallback;
+    if (result is Exception) {
+      throw result;
+    }
+    if (result is Error) {
+      throw result;
+    }
+
+    return result as T;
+  }
+}
+
+Quote createQuote({
+  int id = 1,
+  String quote = 'Stay close to the architecture.',
+  String author = 'Codex',
+}) {
+  return Quote(id: id, quote: quote, author: author);
+}
+
+class FakeQuotesRepository implements QuotesRepository {
+  Object? fetchQuotesResult;
+  int fetchQuotesCallCount = 0;
+  int? lastLimit;
+  int? lastSkip;
+
+  @override
+  Future<List<Quote>> fetchQuotes({
+    required int limit,
+    required int skip,
+  }) async {
+    fetchQuotesCallCount += 1;
+    lastLimit = limit;
+    lastSkip = skip;
+    return _resolve<List<Quote>>(
+      fetchQuotesResult,
+      fallback: <Quote>[createQuote()],
     );
   }
 

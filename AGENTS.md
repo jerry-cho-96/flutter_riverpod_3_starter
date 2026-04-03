@@ -2,6 +2,7 @@
 
 이 파일은 이 저장소에서 작업하는 AI agent 를 위한 실행 규칙입니다.  
 이 프로젝트는 `Riverpod 3 + go_router + usecase + repository pattern` 을 기준으로 설계되어 있으며, agent 는 아래 규칙을 반드시 따라야 합니다.
+목적은 기존 아키텍처와 프로젝트 판단을 유지하면서, 최소 수정으로 정확하게 구현하고 안전하게 검증하는 것입니다.
 
 ## 1. 기본 원칙
 
@@ -67,6 +68,46 @@
 - 문서만 보고 충분히 결정 가능한 내용이면 구조를 성급히 바꾸지 않습니다.
 - 문서와 실제 코드가 다르면 코드를 확인한 뒤 문서를 최신화합니다.
 - 애매하면 기존 feature 의 배치 패턴을 우선 따르고, 필요할 때만 새 규칙을 도입합니다.
+
+## 1-3. 멀티 에이전트 운영 모델
+
+이 저장소의 복잡한 작업은 기본적으로 `explorer -> implementer -> reviewer` 3단계 구조를 사용할 수 있습니다.
+
+### MUST
+
+- 모든 agent 는 본 문서와 문서 우선순위를 동일하게 따릅니다.
+- `explorer` 는 코드 탐색, 원인 분석, 변경 범위 정의만 수행합니다.
+- `explorer` 는 코드를 수정하지 않습니다.
+- `implementer` 는 승인된 변경 범위 안에서만 최소 패치를 적용합니다.
+- `implementer` 는 구현 후 `dart format`, `flutter analyze`, 필요한 `flutter test` 를 수행합니다.
+- `reviewer` 는 구현 결과를 독립적으로 검토하고, 직접 수정하지 않습니다.
+- 각 agent 는 다음 단계가 바로 사용할 수 있는 구조화된 결과를 남겨야 합니다.
+- 아래 조건 중 하나라도 만족하면 멀티 에이전트 구조를 반드시 사용합니다.
+  - 원인이 명확하지 않은 경우
+  - 2개 이상의 레이어를 동시에 수정하는 경우
+  - 리팩터링 또는 구조 변경인 경우
+  - 인증/세션/라우팅/DI/API 매핑에 영향을 주는 경우
+  - 변경 범위가 feature 를 넘어가는 경우
+  - 회귀 위험이 중간 이상인 경우
+
+- 동작 변경이 있는 작업은 최소 `implementer -> reviewer` 를 반드시 사용합니다.
+
+### SHOULD
+
+- 복잡한 리팩터링, 다층 영향 변경, 원인 불명확 작업은 멀티 에이전트 구조를 우선 사용합니다.
+- 단순 UI 수정이나 국소 버그 수정은 단일 agent 로 처리할 수 있습니다.
+- 각 agent 는 판단 근거를 본 문서의 규칙과 연결해서 설명합니다.
+- 아래 조건을 모두 만족하면 단일 agent 사용이 가능합니다.
+  - 1~2개 파일만 수정
+  - 원인이 명확
+  - 구조 영향 없음
+  - 회귀 위험 낮음
+
+### AVOID
+
+- `explorer` 가 구현까지 진행하는 것
+- `implementer` 가 승인 범위 없이 수정 범위를 넓히는 것
+- `reviewer` 가 리뷰 대신 직접 코드를 고치는 것
 
 ## 2. 이 프로젝트의 정답 아키텍처
 
@@ -168,6 +209,20 @@ feature/
 - 저장/로그인/로그아웃: controller + usecase
 - 목록 조회: `AsyncNotifier` controller
 - 설정 주입: `Provider`
+
+### Riverpod 실행 규칙
+
+- `ref.watch` 는 UI 반응형 구독에 사용합니다.
+- `ref.read` 는 이벤트/액션 트리거에 사용합니다.
+- build 과정에서 직접 side effect 를 발생시키지 않습니다.
+- page-scoped provider override 가 필요한 값은 화면 진입점 `ProviderScope` 에서만 주입합니다.
+- session/global provider 와 화면 전용 provider 의 수명을 혼동하지 않습니다.
+
+### AVOID
+
+- 화면 build 과정에서 직접 API 호출 시작
+- 전역 provider 와 page-scoped provider 책임 혼합
+- `<feature>_providers.dart` 에 내부 helper/provider 를 무분별하게 누적
 
 ## 5. go_router 규칙
 
@@ -321,6 +376,106 @@ feature/
 - 성공 케이스
 - 인증 usecase 는 토큰 보존/삭제 분기까지 확인
 
+## 13-1. Agent Execution Workflow
+
+### MUST
+
+작업은 아래 순서를 따릅니다.
+
+1. Code Exploration
+2. Change Planning
+3. Minimal Patch Implementation
+4. Formatting
+5. Static Analysis
+6. Testing
+7. Result Validation
+8. Risk Reporting
+
+### 역할 분담
+
+- `explorer`
+  - Code Exploration
+  - Change Planning
+- `implementer`
+  - Minimal Patch Implementation
+  - Formatting
+  - Static Analysis
+  - Testing
+- `reviewer`
+  - Result Validation
+  - Risk Reporting
+  - Stop / Retry / Escalate 판단
+
+### SHOULD
+
+- 구조 변경, 인증/세션/라우팅/DI/API 매핑 수정, Riverpod 상태 구조 변경은 `explorer -> implementer -> reviewer` 를 우선 사용합니다.
+- 범위는 명확하지만 동작 변경이 있는 작업은 `implementer -> reviewer` 를 우선 사용합니다.
+
+### AVOID
+
+- 단일 파일만 보고 수정 시작
+- 관련 usecase / repository / route module / session 흐름 확인 없이 구현
+- 테스트 없이 완료 처리
+
+## 13-2. Agent Handoff / Output Format
+
+### Explorer Output
+
+#### MUST
+
+`explorer` 는 아래 형식으로만 결과를 남깁니다.
+
+1. Problem Summary
+2. Suspected Root Cause
+3. Relevant Files
+4. Change Scope
+5. Non-Target Areas
+6. Test Impact
+7. Risks / Open Questions
+
+#### AVOID
+
+- 구현 코드 제안까지 확정하는 것
+- 승인 범위를 불명확하게 남기는 것
+
+### Implementer Output
+
+#### MUST
+
+`implementer` 는 아래 형식으로 결과를 남깁니다.
+
+1. Approved Plan Reference
+2. Files Changed
+3. Key Changes
+4. Verification Results
+5. Remaining Risks
+
+- `Verification Results` 에는 최소한 `dart format`, `flutter analyze`, `flutter test` 실행 여부를 포함합니다.
+- explorer 승인 범위를 벗어난 수정이 있으면 반드시 명시합니다.
+
+#### AVOID
+
+- 변경 파일 경로 없이 설명만 남기는 것
+- 검증 없이 구현만 완료로 표시하는 것
+
+### Reviewer Output
+
+#### MUST
+
+`reviewer` 는 아래 형식으로 결과를 남깁니다.
+
+1. Review Verdict (`pass` / `rework` / `escalate`)
+2. Scope Check
+3. Architecture Check
+4. Test Check
+5. Regression Risks
+6. Required Follow-up
+
+#### AVOID
+
+- 리뷰 결과 없이 직접 수정으로 넘어가는 것
+- 테스트 누락을 사소한 문제로 넘기는 것
+
 ## 14. 작업 전 체크리스트
 
 작업 전 반드시 스스로 확인할 것:
@@ -342,6 +497,41 @@ feature/
 - 문서 업데이트가 필요한가?
 - codegen 이 필요한 파일이면 생성했는가?
 - analyze/test 가 통과하는가?
+
+## 15-1. Agent Escalation Rules
+
+### Explorer
+
+#### MUST
+
+아래 경우에는 `explorer` 가 에스컬레이션합니다.
+
+- 책임 레이어가 불명확한 경우
+- 둘 이상의 구조 방향이 모두 가능해 보이는 경우
+- 서버 계약 또는 기획 의도가 없으면 판단이 어려운 경우
+- 수정 범위가 예상보다 커져 여러 feature/module 로 확장되는 경우
+
+### Implementer
+
+#### MUST
+
+아래 경우에는 `implementer` 가 에스컬레이션합니다.
+
+- 공개 계약 변경 없이는 해결이 불가능한 경우
+- 승인된 범위를 벗어난 수정이 필요한 경우
+- `flutter analyze` 또는 `flutter test` 실패가 구조적 문제로 보이는 경우
+- unrelated 파일까지 함께 수정해야만 해결되는 경우
+
+### Reviewer
+
+#### MUST
+
+아래 경우에는 `reviewer` 가 에스컬레이션합니다.
+
+- 구현은 통과했지만 구조적으로 안전하지 않다고 판단되는 경우
+- 문서 규칙끼리 충돌하는 경우
+- 테스트가 부족해서 `pass` 판단이 어려운 경우
+- 비즈니스 의도를 안전하게 추론할 수 없는 경우
 
 ## 16. 커밋/PR 규칙
 

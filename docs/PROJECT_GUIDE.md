@@ -63,6 +63,20 @@ lib/
       domain/
       presentation/
       home_providers.dart
+    quotes/
+      application/
+        usecases/   명언 목록 조회 usecase
+      data/
+      domain/
+      presentation/
+      quotes_providers.dart
+    todos/
+      application/
+        usecases/   할 일 목록/추가/수정/삭제 usecase
+      data/
+      domain/
+      presentation/
+      todos_providers.dart
 assets/
   images/          일반 이미지
   icons/           앱/feature 아이콘

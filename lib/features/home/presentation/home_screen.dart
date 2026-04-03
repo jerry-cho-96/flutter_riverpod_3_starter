@@ -31,6 +31,26 @@ class HomeScreen extends ConsumerWidget
         children: <Widget>[
           _ProfileSummary(user: user, apiBaseUrl: config.apiBaseUrl),
           const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: <Widget>[
+                OutlinedButton.icon(
+                  onPressed: () => context.push(AppRoute.quotes.path),
+                  icon: const Icon(Icons.format_quote_rounded),
+                  label: const Text('명언 feature 드라이런 열기'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => context.push(AppRoute.todos.path),
+                  icon: const Icon(Icons.checklist_rounded),
+                  label: const Text('할 일 mutation 드라이런 열기'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
           Text(
             TemplateExample.productsTitle,
             style: Theme.of(context).textTheme.titleLarge,
