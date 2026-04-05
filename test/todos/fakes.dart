@@ -12,10 +12,12 @@ Todo createTodo({
 
 class FakeTodosRepository implements TodosRepository {
   Object? fetchTodosResult;
+  Object? fetchTodoDetailResult;
   Object? addTodoResult;
   Object? updateTodoResult;
   Object? deleteTodoResult;
   int fetchTodosCallCount = 0;
+  int fetchTodoDetailCallCount = 0;
   int addTodoCallCount = 0;
   int updateTodoCallCount = 0;
   int deleteTodoCallCount = 0;
@@ -61,13 +63,32 @@ class FakeTodosRepository implements TodosRepository {
   }
 
   @override
-  Future<Todo> updateTodo({required int todoId, bool? completed}) async {
+  Future<Todo> fetchTodoDetail({required int todoId}) async {
+    fetchTodoDetailCallCount += 1;
+    lastTodoId = todoId;
+    return _resolve<Todo>(
+      fetchTodoDetailResult,
+      fallback: createTodo(id: todoId),
+    );
+  }
+
+  @override
+  Future<Todo> updateTodo({
+    required int todoId,
+    String? todo,
+    bool? completed,
+  }) async {
     updateTodoCallCount += 1;
     lastTodoId = todoId;
+    lastTodoText = todo;
     lastCompleted = completed;
     return _resolve<Todo>(
       updateTodoResult,
-      fallback: createTodo(id: todoId, completed: completed ?? false),
+      fallback: createTodo(
+        id: todoId,
+        todo: todo ?? '수정된 작업',
+        completed: completed ?? false,
+      ),
     );
   }
 

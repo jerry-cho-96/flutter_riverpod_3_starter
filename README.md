@@ -193,9 +193,9 @@ flowchart TD
 - `ProviderObserver` 및 네트워크 로깅 훅
 - bootstrap 전역 에러 처리 및 monitoring 확장 포인트
 - 홈에서 현재 사용자 정보 출력
-- `products` 목록/상세 조회와 pull-to-refresh
+- `products` 목록/상세 조회, 검색, 페이지 누적 로딩, pull-to-refresh
 - 별도 protected feature route module 조립 예시로 `quotes` 목록 화면 제공
-- 별도 mutation feature route 조립 예시로 `todos` 목록/추가/수정/삭제 화면 제공
+- 별도 mutation feature route 조립 예시로 `todos` 목록/추가/수정/삭제, create/edit form, edit deep link 복구 흐름 제공
 
 ## 환경값
 

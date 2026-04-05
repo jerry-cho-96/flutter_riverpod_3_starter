@@ -15,6 +15,12 @@ class TodosRepositoryImpl implements TodosRepository {
   }
 
   @override
+  Future<Todo> fetchTodoDetail({required int todoId}) async {
+    final dto = await _remoteDataSource.fetchTodoDetail(todoId: todoId);
+    return _mapTodo(dto);
+  }
+
+  @override
   Future<Todo> deleteTodo({required int todoId}) async {
     final dto = await _remoteDataSource.deleteTodo(todoId: todoId);
     return _mapTodo(dto);
@@ -36,9 +42,14 @@ class TodosRepositoryImpl implements TodosRepository {
   }
 
   @override
-  Future<Todo> updateTodo({required int todoId, bool? completed}) async {
+  Future<Todo> updateTodo({
+    required int todoId,
+    String? todo,
+    bool? completed,
+  }) async {
     final dto = await _remoteDataSource.updateTodo(
       todoId: todoId,
+      todo: todo,
       completed: completed,
     );
     return _mapTodo(dto);

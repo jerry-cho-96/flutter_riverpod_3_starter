@@ -4,6 +4,7 @@ import 'package:riverpod_origin_template/features/auth/domain/entities/auth_sess
 import 'package:riverpod_origin_template/features/auth/domain/repositories/auth_repository.dart';
 import 'package:riverpod_origin_template/features/auth/domain/value_objects/auth_tokens.dart';
 import 'package:riverpod_origin_template/features/home/domain/entities/product.dart';
+import 'package:riverpod_origin_template/features/home/domain/entities/product_page.dart';
 import 'package:riverpod_origin_template/features/home/domain/repositories/products_repository.dart';
 import 'package:riverpod_origin_template/features/quotes/domain/entities/quote.dart';
 import 'package:riverpod_origin_template/features/quotes/domain/repositories/quotes_repository.dart';
@@ -179,19 +180,22 @@ class FakeProductsRepository implements ProductsRepository {
   int fetchProductDetailCallCount = 0;
   int? lastLimit;
   int? lastSkip;
+  String? lastQuery;
   int? lastProductId;
 
   @override
-  Future<List<Product>> fetchProducts({
+  Future<ProductPage> fetchProducts({
     required int limit,
     required int skip,
+    String? query,
   }) async {
     fetchProductsCallCount += 1;
     lastLimit = limit;
     lastSkip = skip;
-    return _resolve<List<Product>>(
+    lastQuery = query;
+    return _resolve<ProductPage>(
       fetchProductsResult,
-      fallback: <Product>[createProduct()],
+      fallback: createProductPage(products: <Product>[createProduct()]),
     );
   }
 
@@ -216,6 +220,20 @@ class FakeProductsRepository implements ProductsRepository {
 
     return result as T;
   }
+}
+
+ProductPage createProductPage({
+  List<Product>? products,
+  int total = 1,
+  int skip = 0,
+  int limit = 20,
+}) {
+  return ProductPage(
+    products: products ?? <Product>[createProduct()],
+    total: total,
+    skip: skip,
+    limit: limit,
+  );
 }
 
 Quote createQuote({

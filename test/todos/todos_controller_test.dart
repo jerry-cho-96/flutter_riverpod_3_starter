@@ -220,7 +220,16 @@ class _QueuedTodosRepository implements TodosRepository {
   }
 
   @override
-  Future<Todo> updateTodo({required int todoId, bool? completed}) {
+  Future<Todo> fetchTodoDetail({required int todoId}) {
+    throw UnimplementedError('할 일 상세 조회는 이 테스트에서 사용하지 않습니다.');
+  }
+
+  @override
+  Future<Todo> updateTodo({
+    required int todoId,
+    String? todo,
+    bool? completed,
+  }) {
     throw UnimplementedError('할 일 수정은 이 테스트에서 사용하지 않습니다.');
   }
 }

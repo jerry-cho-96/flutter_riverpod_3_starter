@@ -25,11 +25,7 @@ class TodosController extends _$TodosController {
     final createdTodo = await _unwrap<Todo>(
       ref.read(addTodoUseCaseProvider).call(userId: userId, todo: todoText),
     );
-    _dirtyTodoIds.add(createdTodo.id);
-    _deletedTodoIds.remove(createdTodo.id);
-    _localOnlyTodoIds.add(createdTodo.id);
-    final currentTodos = state.value ?? const <Todo>[];
-    state = AsyncData(<Todo>[createdTodo, ...currentTodos]);
+    _insertCreatedTodo(createdTodo);
   }
 
   Future<void> deleteTodo(Todo todo) async {
@@ -84,13 +80,16 @@ class TodosController extends _$TodosController {
           .read(toggleTodoCompletionUseCaseProvider)
           .call(todoId: todo.id, completed: !todo.completed),
     );
-    _dirtyTodoIds.add(updatedTodo.id);
-    final currentTodos = state.value ?? const <Todo>[];
-    state = AsyncData(
-      currentTodos
-          .map((item) => item.id == updatedTodo.id ? updatedTodo : item)
-          .toList(growable: false),
-    );
+    _replaceTodo(updatedTodo);
+  }
+
+  void applySavedTodo(Todo todo, {required bool isNew}) {
+    if (isNew) {
+      _insertCreatedTodo(todo);
+      return;
+    }
+
+    _replaceTodo(todo);
   }
 
   Future<List<Todo>> _load() async {
@@ -148,5 +147,23 @@ class TodosController extends _$TodosController {
     _localOnlyTodoIds.removeWhere((todoId) => fetchedById.containsKey(todoId));
 
     return mergedTodos;
+  }
+
+  void _insertCreatedTodo(Todo todo) {
+    _dirtyTodoIds.add(todo.id);
+    _deletedTodoIds.remove(todo.id);
+    _localOnlyTodoIds.add(todo.id);
+    final currentTodos = state.value ?? const <Todo>[];
+    state = AsyncData(<Todo>[todo, ...currentTodos]);
+  }
+
+  void _replaceTodo(Todo todo) {
+    _dirtyTodoIds.add(todo.id);
+    final currentTodos = state.value ?? const <Todo>[];
+    state = AsyncData(
+      currentTodos
+          .map((item) => item.id == todo.id ? todo : item)
+          .toList(growable: false),
+    );
   }
 }

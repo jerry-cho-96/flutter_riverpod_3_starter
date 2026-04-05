@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/network/models/app_exception.dart';
 import '../../../../core/result/result.dart';
-import '../../domain/entities/product.dart';
+import '../../domain/entities/product_page.dart';
 import '../../domain/repositories/products_repository.dart';
 import '../../home_providers.dart';
 
@@ -16,20 +16,31 @@ class GetProductsUseCase {
 
   final ProductsRepository _repository;
 
-  Future<Result<List<Product>>> call({
+  Future<Result<ProductPage>> call({
     required int limit,
     required int skip,
+    String? query,
   }) async {
+    if (limit <= 0 || skip < 0) {
+      return const Failure<ProductPage>(
+        AppFailure(
+          message: '유효한 상품 목록 요청이 아닙니다.',
+          type: FailureType.validation,
+        ),
+      );
+    }
+
     try {
-      final products = await _repository.fetchProducts(
+      final productsPage = await _repository.fetchProducts(
         limit: limit,
         skip: skip,
+        query: query?.trim().isEmpty ?? true ? null : query?.trim(),
       );
-      return Success<List<Product>>(products);
+      return Success<ProductPage>(productsPage);
     } on AppException catch (error) {
-      return Failure<List<Product>>(AppFailure.fromAppException(error));
+      return Failure<ProductPage>(AppFailure.fromAppException(error));
     } catch (error) {
-      return Failure<List<Product>>(
+      return Failure<ProductPage>(
         AppFailure.fromObject(error, fallbackMessage: '상품 목록을 불러오지 못했습니다.'),
       );
     }

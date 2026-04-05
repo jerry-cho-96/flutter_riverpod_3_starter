@@ -33,6 +33,7 @@ class ToggleTodoCompletionUseCase {
     try {
       final updatedTodo = await _repository.updateTodo(
         todoId: todoId,
+        todo: null,
         completed: completed,
       );
       return Success<Todo>(updatedTodo);

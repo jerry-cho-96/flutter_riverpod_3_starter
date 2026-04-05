@@ -127,6 +127,10 @@ assets/
 - `ProductsController`
 - `ProductDetailController`
 
+현재 `todos` feature 는 mutation 확장 예시로 목록 화면과 별도 create/edit form 라우트를 함께 사용합니다. 이때도 form submit 자체는 controller -> usecase 흐름으로 처리하고, route-driven edit mode 와 입력 검증은 application/page-scoped provider 와 presentation form 화면 조합으로 유지합니다. edit deep link 는 `todoId` 기반 상세 조회로 복구하고, `state.extra` 는 초기 표시를 빠르게 하는 선택적 캐시로만 사용합니다.
+
+현재 `home` feature 는 읽기 전용 목록 확장 예시로 검색과 페이지 누적 로딩까지 포함합니다. 이때도 controller 는 usecase 만 호출하고, pagination 메타데이터는 domain entity 를 통해 전달해 presentation 이 data DTO 를 직접 알지 않도록 유지합니다.
+
 현재 템플릿은 `application` 루트에 controller, state, page-scoped provider 를 함께 두고 있습니다. 아직 복잡도가 낮기 때문에 유지하며, 구조가 커질 때만 `controllers/`, `states/`, `providers/`, `usecases/` 하위 폴더 분리를 검토합니다.
 
 #### usecase 를 둔 이유
@@ -265,10 +269,10 @@ feature root providers -> data 구현체 조립
 
 ### 6) 페이지 전용 route argument 관리
 
-상품 상세처럼 route argument 를 여러 하위 위젯에서 함께 써야 하는 화면은 페이지 내부에 별도 `ProviderScope` 를 열고 argument provider 를 override 하는 방식을 사용합니다.
+상품 상세처럼 route argument 를 여러 하위 위젯에서 함께 써야 하는 화면은 route module 또는 화면 진입점 builder 에서 `ProviderScope` 를 열고 argument provider 를 override 하는 방식을 사용합니다.
 
-- 페이지 진입점이 `productId` 를 받음
-- 페이지 최상단 `ProviderScope` 에서 `productDetailArgumentProvider.overrideWithValue(productId)` 수행
+- route builder 가 `productId` 를 파싱함
+- route builder 의 `ProviderScope` 에서 `productDetailArgumentProvider.overrideWithValue(productId)` 수행
 - 하위 위젯과 controller 는 동일한 argument provider 를 참조
 - presentation 에서 `productId` 를 자식 위젯마다 계속 전달하지 않음
 

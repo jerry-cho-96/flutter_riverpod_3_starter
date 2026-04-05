@@ -1,5 +1,7 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../features/home/application/product_detail_argument_provider.dart';
 import '../../../features/home/presentation/home_screen.dart';
 import '../../../features/home/presentation/invalid_product_detail_screen.dart';
 import '../../../features/home/presentation/product_detail_screen.dart';
@@ -21,7 +23,12 @@ List<RouteBase> buildHomeRouteModule() {
           return const InvalidProductDetailScreen();
         }
 
-        return ProductDetailScreen(productId: productId);
+        return ProviderScope(
+          overrides: [
+            productDetailArgumentProvider.overrideWithValue(productId),
+          ],
+          child: const ProductDetailScreen(),
+        );
       },
     ),
   ];

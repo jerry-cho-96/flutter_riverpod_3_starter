@@ -9,19 +9,41 @@ import '../helpers/test_doubles.dart';
 void main() {
   group('GetProductsUseCase', () {
     test('성공 시 상품 목록을 반환하고 요청 파라미터를 전달한다', () async {
-      final products = <Product>[createProduct(), createProduct(id: 2)];
+      final productsPage = createProductPage(
+        products: <Product>[createProduct(), createProduct(id: 2)],
+        total: 24,
+        limit: 20,
+      );
       final repository = FakeProductsRepository()
-        ..fetchProductsResult = products;
+        ..fetchProductsResult = productsPage;
       final useCase = GetProductsUseCase(repository);
 
-      final result = await useCase.call(limit: 20, skip: 0);
+      final result = await useCase.call(limit: 20, skip: 0, query: ' phone ');
 
       expect(repository.fetchProductsCallCount, 1);
       expect(repository.lastLimit, 20);
       expect(repository.lastSkip, 0);
+      expect(repository.lastQuery, 'phone');
       result.when(
-        success: (value) => expect(value, hasLength(2)),
+        success: (value) {
+          expect(value.products, hasLength(2));
+          expect(value.total, 24);
+        },
         failure: (_) => fail('성공 케이스가 예상됩니다.'),
+      );
+    });
+
+    test('limit 또는 skip 이 유효하지 않으면 validation 실패를 반환한다', () async {
+      final useCase = GetProductsUseCase(FakeProductsRepository());
+
+      final result = await useCase.call(limit: 0, skip: -1);
+
+      result.when(
+        success: (_) => fail('validation 실패가 예상됩니다.'),
+        failure: (error) {
+          expect(error.type, FailureType.validation);
+          expect(error.message, '유효한 상품 목록 요청이 아닙니다.');
+        },
       );
     });
 

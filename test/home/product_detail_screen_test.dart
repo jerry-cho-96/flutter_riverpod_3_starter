@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:riverpod_origin_template/features/home/application/product_detail_argument_provider.dart';
 import 'package:riverpod_origin_template/features/home/presentation/product_detail_screen.dart';
 import 'package:riverpod_origin_template/features/home/home_providers.dart';
 
@@ -15,8 +16,11 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [productsRepositoryProvider.overrideWithValue(repository)],
-        child: const MaterialApp(home: ProductDetailScreen(productId: 11)),
+        overrides: [
+          productsRepositoryProvider.overrideWithValue(repository),
+          productDetailArgumentProvider.overrideWithValue(11),
+        ],
+        child: const MaterialApp(home: ProductDetailScreen()),
       ),
     );
 

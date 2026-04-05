@@ -7,9 +7,11 @@ abstract interface class TodosRepository {
     required int skip,
   });
 
+  Future<Todo> fetchTodoDetail({required int todoId});
+
   Future<Todo> addTodo({required int userId, required String todo});
 
-  Future<Todo> updateTodo({required int todoId, bool? completed});
+  Future<Todo> updateTodo({required int todoId, String? todo, bool? completed});
 
   Future<Todo> deleteTodo({required int todoId});
 }

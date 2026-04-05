@@ -4,6 +4,8 @@ enum AppRoute {
   home(name: 'home', path: '/home'),
   quotes(name: 'quotes', path: '/quotes'),
   todos(name: 'todos', path: '/todos'),
+  todoCreate(name: 'todoCreate', path: '/todos/create'),
+  todoEdit(name: 'todoEdit', path: '/todos/:todoId/edit'),
   productDetail(name: 'productDetail', path: '/home/products/:productId');
 
   const AppRoute({required this.name, required this.path});

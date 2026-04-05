@@ -89,8 +89,11 @@
   - 인증/세션/라우팅/DI/API 매핑에 영향을 주는 경우
   - 변경 범위가 feature 를 넘어가는 경우
   - 회귀 위험이 중간 이상인 경우
-
 - 동작 변경이 있는 작업은 최소 `implementer -> reviewer` 를 반드시 사용합니다.
+- `explorer -> implementer -> reviewer` 는 반드시 순차적으로 실행합니다.
+- `implementer` 는 `explorer` 의 최종 결과가 완전히 확정되기 전에는 시작하면 안 됩니다.
+- `reviewer` 는 `implementer` 의 최종 결과와 검증 결과가 완전히 확정되기 전에는 시작하면 안 됩니다.
+- 역할을 내부적으로 흉내 내는 방식(simulation)으로 대체하지 않고, 실제 subagent 실행을 사용합니다.
 
 ### SHOULD
 
@@ -188,7 +191,10 @@ feature/
 - datasource provider 는 `data/datasources` 파일 안에 둡니다.
 - controller 는 `application` 에 두고 codegen 파일(`*.g.dart`)과 함께 관리합니다.
 - feature-level state 는 `application` 에 두고 controller 와 가까이 관리합니다.
-- page-scoped route argument provider 는 `application` 에 두고, 화면 진입점의 `ProviderScope` override 로 주입합니다.
+- page-scoped route argument provider 는 `application` 에 둡니다.
+- page-scoped route argument provider 는 반드시 route module 또는 화면 진입점 builder 의 `ProviderScope` override 로 주입합니다.
+- page-scoped route argument provider 를 화면 내부에서 다시 `ProviderScope` 로 주입하지 않습니다.
+- 화면은 route 진입점에서 override 된 page-scoped provider 를 소비만 해야 합니다.
 - `application` 하위 폴더 분리는 아직 기본값이 아닙니다.
   - 현재처럼 파일 수가 작고 탐색 비용이 낮으면 루트 구조를 유지합니다.
   - 생성 파일을 제외한 서로 다른 성격의 루트 파일이 5개 이상 섞이기 시작하면 `controllers/`, `states/`, `providers/`, `usecases/` 분리를 검토합니다.
@@ -216,12 +222,15 @@ feature/
 - `ref.read` 는 이벤트/액션 트리거에 사용합니다.
 - build 과정에서 직접 side effect 를 발생시키지 않습니다.
 - page-scoped provider override 가 필요한 값은 화면 진입점 `ProviderScope` 에서만 주입합니다.
+- page-scoped provider override 는 route builder, shell child builder, 또는 화면 진입 직전 wrapper 에서만 수행합니다.
+- `ConsumerWidget`/`ConsumerStatefulWidget` 내부에서 argument 전달을 위해 새 `ProviderScope` 를 다시 여는 방식을 금지합니다.
 - session/global provider 와 화면 전용 provider 의 수명을 혼동하지 않습니다.
 
 ### AVOID
 
 - 화면 build 과정에서 직접 API 호출 시작
 - 전역 provider 와 page-scoped provider 책임 혼합
+- 화면 내부에서 page-scoped argument 를 다시 `ProviderScope` 로 재주입
 - `<feature>_providers.dart` 에 내부 helper/provider 를 무분별하게 누적
 
 ## 5. go_router 규칙
@@ -419,6 +428,26 @@ feature/
 
 ## 13-2. Agent Handoff / Output Format
 
+### Handoff Acceptance Rules
+
+#### MUST
+
+- `implementer` 는 아래 항목이 모두 채워진 explorer output 이 없으면 작업을 시작하지 않습니다.
+  1. Problem Summary
+  2. Suspected Root Cause
+  3. Relevant Files
+  4. Change Scope
+  5. Non-Target Areas
+  6. Test Impact
+  7. Risks / Open Questions
+
+- `reviewer` 는 아래 항목이 모두 채워진 implementer output 이 없으면 리뷰를 시작하지 않습니다.
+  1. Approved Plan Reference
+  2. Files Changed
+  3. Key Changes
+  4. Verification Results
+  5. Remaining Risks
+
 ### Explorer Output
 
 #### MUST
@@ -476,6 +505,15 @@ feature/
 - 리뷰 결과 없이 직접 수정으로 넘어가는 것
 - 테스트 누락을 사소한 문제로 넘기는 것
 
+### Output Contract Enforcement
+
+#### MUST
+
+- 각 agent 는 자신의 Output 형식에 정의된 항목만 사용해야 합니다.
+- 다른 agent 역할의 내용이 섞이면 안 됩니다.
+- 필수 항목이 하나라도 누락되면 해당 결과는 무효입니다.
+- 무효한 결과를 받은 다음 agent 는 작업을 진행하지 않고 `rework` 또는 `escalate` 해야 합니다.
+
 ## 14. 작업 전 체크리스트
 
 작업 전 반드시 스스로 확인할 것:
@@ -532,6 +570,17 @@ feature/
 - 문서 규칙끼리 충돌하는 경우
 - 테스트가 부족해서 `pass` 판단이 어려운 경우
 - 비즈니스 의도를 안전하게 추론할 수 없는 경우
+
+#### 추가 검증 (MUST)
+
+- reviewer 는 코드 품질뿐 아니라 아래 절차 준수 여부도 함께 검토합니다.
+  - explorer -> implementer -> reviewer 순차 실행 여부
+  - handoff acceptance rules 충족 여부
+  - output format 준수 여부
+  - 승인된 변경 범위 초과 여부
+
+- 절차 위반이 있는 경우, 코드가 맞더라도 `pass` 를 줄 수 없습니다.
+- 절차 위반 시 기본 판정은 `rework` 입니다.
 
 ## 16. 커밋/PR 규칙
 

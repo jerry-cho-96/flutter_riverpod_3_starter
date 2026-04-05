@@ -36,6 +36,20 @@ class TodosRemoteDataSource {
     }
   }
 
+  Future<TodoDto> fetchTodoDetail({required int todoId}) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>('/todos/$todoId');
+      final json = response.data;
+      if (json == null) {
+        throw const AppException('할 일 상세 응답이 비어 있습니다.');
+      }
+
+      return TodoDto.fromJson(json);
+    } on DioException catch (error) {
+      throw AppException.fromDioException(error);
+    }
+  }
+
   Future<TodoDto> addTodo({required int userId, required String todo}) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -57,11 +71,15 @@ class TodosRemoteDataSource {
     }
   }
 
-  Future<TodoDto> updateTodo({required int todoId, bool? completed}) async {
+  Future<TodoDto> updateTodo({
+    required int todoId,
+    String? todo,
+    bool? completed,
+  }) async {
     try {
       final response = await _dio.patch<Map<String, dynamic>>(
         '/todos/$todoId',
-        data: <String, Object?>{'completed': completed},
+        data: <String, Object?>{'todo': todo, 'completed': completed},
       );
       final json = response.data;
       if (json == null) {

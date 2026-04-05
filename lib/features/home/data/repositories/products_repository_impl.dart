@@ -1,4 +1,5 @@
 import '../../domain/entities/product.dart';
+import '../../domain/entities/product_page.dart';
 import '../../domain/repositories/products_repository.dart';
 import '../datasources/products_remote_data_source.dart';
 import '../models/product_dto.dart';
@@ -9,16 +10,23 @@ class ProductsRepositoryImpl implements ProductsRepository {
   final ProductsRemoteDataSource _remoteDataSource;
 
   @override
-  Future<List<Product>> fetchProducts({
+  Future<ProductPage> fetchProducts({
     required int limit,
     required int skip,
+    String? query,
   }) async {
     final response = await _remoteDataSource.fetchProducts(
       limit: limit,
       skip: skip,
+      query: query,
     );
 
-    return response.products.map(_mapProduct).toList(growable: false);
+    return ProductPage(
+      products: response.products.map(_mapProduct).toList(growable: false),
+      total: response.total,
+      skip: response.skip,
+      limit: response.limit,
+    );
   }
 
   @override

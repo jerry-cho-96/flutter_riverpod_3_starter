@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router/app_routes.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/presentation/async_value_view.dart';
 import '../domain/entities/todo.dart';
@@ -15,21 +17,7 @@ class TodosScreen extends ConsumerStatefulWidget {
 
 class _TodosScreenState extends ConsumerState<TodosScreen>
     with TodosPresentationStateMixin, TodosPresentationEventMixin {
-  late final TextEditingController _todoController;
-  bool _isCreating = false;
   final Set<int> _pendingTodoIds = <int>{};
-
-  @override
-  void initState() {
-    super.initState();
-    _todoController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _todoController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,32 +42,14 @@ class _TodosScreenState extends ConsumerState<TodosScreen>
                     Text('Mutation Dry Run', style: theme.textTheme.titleLarge),
                     const SizedBox(height: 8),
                     Text(
-                      '이 화면은 새 feature에 목록 조회와 추가, 수정, 삭제 흐름을 함께 얹어도 스타터킷 구조가 유지되는지 검증합니다.',
+                      '이 화면은 목록 화면을 유지한 채 별도 create/edit form 라우트를 추가해도 스타터킷 구조가 유지되는지 검증합니다.',
                       style: theme.textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 20),
-                    TextField(
-                      controller: _todoController,
-                      enabled: !_isCreating && !isTodosLoading,
-                      decoration: const InputDecoration(
-                        labelText: '새 할 일',
-                        hintText: '예: build_runner 정리하기',
-                      ),
-                      onSubmitted: (_) => _submitTodo(),
-                    ),
-                    const SizedBox(height: 16),
                     FilledButton.icon(
-                      onPressed: _isCreating || isTodosLoading
-                          ? null
-                          : _submitTodo,
-                      icon: _isCreating
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.add_task_rounded),
-                      label: Text(_isCreating ? '추가 중...' : '할 일 추가'),
+                      onPressed: isTodosLoading ? null : _openCreateForm,
+                      icon: const Icon(Icons.add_task_rounded),
+                      label: const Text('할 일 추가 폼 열기'),
                     ),
                   ],
                 ),
@@ -107,6 +77,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen>
                         isPending:
                             isTodosLoading ||
                             _pendingTodoIds.contains(todos[index].id),
+                        onEdit: () => _openEditForm(todos[index]),
                         onToggle: () => _toggleTodo(todos[index]),
                         onDelete: () => _deleteTodo(todos[index]),
                       ),
@@ -142,27 +113,6 @@ class _TodosScreenState extends ConsumerState<TodosScreen>
     }
   }
 
-  Future<void> _submitTodo() async {
-    setState(() => _isCreating = true);
-    try {
-      await addTodo(ref, _todoController.text);
-      if (!mounted) {
-        return;
-      }
-      _todoController.clear();
-      _showMessage('할 일을 추가했습니다.');
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      _showError(error);
-    } finally {
-      if (mounted) {
-        setState(() => _isCreating = false);
-      }
-    }
-  }
-
   Future<void> _toggleTodo(Todo todo) async {
     setState(() => _pendingTodoIds.add(todo.id));
     try {
@@ -181,6 +131,19 @@ class _TodosScreenState extends ConsumerState<TodosScreen>
         setState(() => _pendingTodoIds.remove(todo.id));
       }
     }
+  }
+
+  Future<void> _openCreateForm() async {
+    await context.push(AppRoute.todoCreate.path);
+  }
+
+  Future<void> _openEditForm(Todo todo) async {
+    await context.push(
+      AppRoute.todoEdit.location(
+        pathParameters: <String, String>{'todoId': todo.id.toString()},
+      ),
+      extra: todo,
+    );
   }
 
   void _showError(Object error) {
@@ -218,7 +181,10 @@ class _EmptyTodosCard extends StatelessWidget {
           children: <Widget>[
             Text('할 일이 없습니다.', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text('위 입력창에서 첫 할 일을 추가해 보세요.', style: theme.textTheme.bodyMedium),
+            Text(
+              '위 버튼으로 create form 화면을 열어 첫 할 일을 추가해 보세요.',
+              style: theme.textTheme.bodyMedium,
+            ),
           ],
         ),
       ),
@@ -230,12 +196,14 @@ class _TodoCard extends StatelessWidget {
   const _TodoCard({
     required this.todo,
     required this.isPending,
+    required this.onEdit,
     required this.onToggle,
     required this.onDelete,
   });
 
   final Todo todo;
   final bool isPending;
+  final VoidCallback onEdit;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
 
@@ -272,6 +240,12 @@ class _TodoCard extends StatelessWidget {
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: isPending ? null : onEdit,
+                    icon: const Icon(Icons.edit_rounded),
+                    label: const Text('수정'),
                   ),
                 ],
               ),

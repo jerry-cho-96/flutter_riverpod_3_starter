@@ -20,11 +20,18 @@ class ProductsRemoteDataSource {
   Future<PaginatedProductsResponseDto> fetchProducts({
     required int limit,
     required int skip,
+    String? query,
   }) async {
     try {
+      final normalizedQuery = query?.trim();
+      final hasQuery = normalizedQuery != null && normalizedQuery.isNotEmpty;
       final response = await _dio.get<Map<String, dynamic>>(
-        '/products',
-        queryParameters: <String, Object>{'limit': limit, 'skip': skip},
+        hasQuery ? '/products/search' : '/products',
+        queryParameters: <String, Object>{
+          'limit': limit,
+          'skip': skip,
+          if (hasQuery) 'q': normalizedQuery,
+        },
       );
       final json = response.data;
       if (json == null) {

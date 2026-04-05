@@ -2,21 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/presentation/async_value_view.dart';
-import '../application/product_detail_argument_provider.dart';
 import '../domain/entities/product.dart';
 import 'product_detail_presentation_mixins.dart';
 
 class ProductDetailScreen extends ConsumerWidget {
-  const ProductDetailScreen({super.key, required this.productId});
-
-  final int productId;
+  const ProductDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ProviderScope(
-      overrides: [productDetailArgumentProvider.overrideWithValue(productId)],
-      child: const _ProductDetailScopeView(),
-    );
+    return const _ProductDetailScopeView();
   }
 }
 

@@ -33,7 +33,7 @@ final class TodosControllerProvider
   TodosController create() => TodosController();
 }
 
-String _$todosControllerHash() => r'f37f79df13b5c297b9f1d20e90518271182583ee';
+String _$todosControllerHash() => r'74bed63d48df6288f57a8cedfba8ff0fd223a66c';
 
 abstract class _$TodosController extends $AsyncNotifier<List<Todo>> {
   FutureOr<List<Todo>> build();
