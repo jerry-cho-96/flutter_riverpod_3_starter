@@ -14,7 +14,7 @@ AI agent 작업 규칙은 [AGENTS.md](./AGENTS.md) 에 정리되어 있습니다
 - `dio`
 - `freezed` + `json_serializable`
 - `usecase` + repository pattern
-- `flutter_secure_storage`(모바일) / `shared_preferences`(웹)
+- `flutter_secure_storage`(모바일/데스크톱) / `shared_preferences`(웹)
 
 ## 실행 방법
 
@@ -38,7 +38,14 @@ flutter run -t lib/main_staging.dart
 flutter run -t lib/main_production.dart
 ```
 
-환경별 기본 설정값은 [app_flavors.dart](./lib/core/config/app_flavors.dart) 에서 한 번에 관리합니다.
+기본 `lib/main.dart` 는 `--dart-define` 값을 직접 읽고, 값이 없으면 `APP_ENV=dev`, `API_BASE_URL=https://dummyjson.com` 을 사용합니다.
+환경별 entrypoint 는 [app_flavors.dart](./lib/core/config/app_flavors.dart) 의 기본값을 주입합니다.
+
+- `lib/main_development.dart`: `dev` + `https://dummyjson.com`
+- `lib/main_staging.dart`: `staging` + `https://staging-api.example.com`
+- `lib/main_production.dart`: `prod` + `https://api.example.com`
+
+필요하면 어떤 entrypoint 에서든 `--dart-define=API_BASE_URL=...` 로 base URL 을 다시 override 할 수 있습니다.
 
 ## 예제 계정
 
@@ -54,6 +61,7 @@ lib/
   app/
     router/
       route_modules/
+      widgets/
     theme/
     widgets/
   core/
@@ -225,10 +233,20 @@ flutter run --dart-define=APP_ENV=prod
 ## 플랫폼 메모
 
 - 웹은 `PathUrlStrategy` 를 사용하므로 배포 서버에서 모든 경로를 `index.html` 로 rewrite 해야 합니다.
-- 모바일은 `flutter_secure_storage` 를 기본 토큰 저장소로 사용합니다.
+- 모바일/데스크톱은 `flutter_secure_storage` 를 기본 토큰 저장소로 사용합니다.
 - 웹은 플랫폼 제약 때문에 `shared_preferences` 기반 구현을 사용합니다.
-- Android 는 보안 저장소 기본 옵션에 맞춰 `minSdk 23` 으로 상향했습니다.
-- iOS 는 Keychain 저장을 위해 entitlements 를 추가했습니다.
+- Android 최소 SDK 값은 현재 프로젝트의 Flutter/Gradle 기본 설정을 따릅니다. 플러그인 정책 변경이 있으면 [android/app/build.gradle.kts](./android/app/build.gradle.kts) 를 함께 확인해야 합니다.
+- iOS 는 Keychain 기반 저장을 위해 [Runner.entitlements](./ios/Runner/Runner.entitlements) 와 secure storage 옵션을 함께 사용합니다.
+
+## 검증 명령
+
+구조나 기능을 바꿨다면 아래 명령까지 함께 확인하는 흐름을 권장합니다.
+
+```bash
+dart format lib test
+flutter analyze
+flutter test
+```
 
 ## 권장 작업 흐름
 
