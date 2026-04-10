@@ -124,6 +124,12 @@ lib/
   - 시스템 인프라 성격이면 `core`
   - feature 간 재사용 UI/헬퍼 성격이면 `shared`
 
+## 관측성 기본값
+
+- 기본 monitoring 구현은 `DebugAppMonitoring` 으로 유지합니다.
+- debug 기본 구현은 최근 breadcrumb 를 메모리에 유지했다가 에러 발생 시 함께 출력합니다.
+- 운영 연결이 필요해지면 같은 인터페이스를 구현해 Sentry/Crashlytics/Datadog 로 교체합니다.
+
 ## Storage 선택 정책
 
 - `TokenStorage` 는 저장 계약입니다.

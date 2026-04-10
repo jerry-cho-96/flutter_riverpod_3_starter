@@ -207,6 +207,7 @@ flowchart TD
 - `APP_ENV`, `API_BASE_URL` 기반 환경 분리와 비생산 배너
 - `ProviderObserver` 및 네트워크 로깅 훅
 - bootstrap 전역 에러 처리 및 monitoring 확장 포인트
+- 기본 `DebugAppMonitoring` 은 최근 breadcrumb 를 버퍼링했다가 에러 로그와 함께 출력합니다.
 - 홈에서 현재 사용자 정보 출력
 - `products` 목록/상세 조회와 pull-to-refresh
 - 별도 protected feature route module 조립 예시로 `quotes` 목록 화면 제공

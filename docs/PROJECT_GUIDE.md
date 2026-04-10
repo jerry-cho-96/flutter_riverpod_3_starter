@@ -220,6 +220,9 @@ feature root providers -> data 구현체 조립
 - `ProviderScope` 시작
 - `ProviderObserver` 연결
 
+기본 monitoring 구현은 최근 breadcrumb 를 버퍼링하고, framework/platform/provider 에러가 발생하면 함께 출력합니다.
+실서비스 연결이 필요해지면 `AppMonitoring` 구현체만 교체하면 됩니다.
+
 ### 2) 앱 생성
 
 `app/app.dart`

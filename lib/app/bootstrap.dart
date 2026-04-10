@@ -22,7 +22,7 @@ void bootstrap({
   }
 
   final resolvedLogger = logger ?? const DebugAppLogger();
-  final resolvedMonitoring = monitoring ?? const DebugAppMonitoring();
+  final resolvedMonitoring = monitoring ?? DebugAppMonitoring();
   final config = AppConfig.fromEnvironment(
     fallbackApiBaseUrl: flavor?.apiBaseUrl,
     environmentOverride: flavor?.environment,

@@ -13,12 +13,24 @@ abstract interface class AppMonitoring {
 }
 
 class DebugAppMonitoring implements AppMonitoring {
-  const DebugAppMonitoring();
+  DebugAppMonitoring({this.maxBreadcrumbs = 20});
+
+  final int maxBreadcrumbs;
+  final List<String> _breadcrumbs = <String>[];
+
+  @visibleForTesting
+  List<String> get breadcrumbs => List<String>.unmodifiable(_breadcrumbs);
 
   @override
   void recordBreadcrumb(String message) {
+    final entry = '[${DateTime.now().toIso8601String()}] $message';
+    _breadcrumbs.add(entry);
+    if (_breadcrumbs.length > maxBreadcrumbs) {
+      _breadcrumbs.removeAt(0);
+    }
+
     if (kDebugMode) {
-      debugPrint('[MONITORING][BREADCRUMB] $message');
+      debugPrint('[MONITORING][BREADCRUMB] $entry');
     }
   }
 
@@ -30,6 +42,12 @@ class DebugAppMonitoring implements AppMonitoring {
     bool fatal = false,
   }) {
     debugPrint('[MONITORING][${fatal ? 'FATAL' : 'ERROR'}] $reason');
+    if (_breadcrumbs.isNotEmpty && kDebugMode) {
+      debugPrint('[MONITORING][RECENT_BREADCRUMBS]');
+      for (final breadcrumb in _breadcrumbs) {
+        debugPrint('  $breadcrumb');
+      }
+    }
     if (error != null && kDebugMode) {
       debugPrint('  error: $error');
     }
@@ -40,5 +58,5 @@ class DebugAppMonitoring implements AppMonitoring {
 }
 
 final appMonitoringProvider = Provider<AppMonitoring>((ref) {
-  return const DebugAppMonitoring();
+  return DebugAppMonitoring();
 });
