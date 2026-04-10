@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:riverpod_origin_template/core/pagination/page_chunk.dart';
 import 'package:riverpod_origin_template/features/todos/application/current_todo_user_id_provider.dart';
 import 'package:riverpod_origin_template/features/todos/application/todos_controller.dart';
+import 'package:riverpod_origin_template/features/todos/application/todos_list_state.dart';
 import 'package:riverpod_origin_template/features/todos/domain/entities/todo.dart';
 import 'package:riverpod_origin_template/features/todos/domain/repositories/todos_repository.dart';
 import 'package:riverpod_origin_template/features/todos/todos_providers.dart';
@@ -13,45 +15,45 @@ import 'fakes.dart';
 void main() {
   test('refresh 시 이전 목록을 유지한 채 새 요청을 시작한다', () async {
     final repository = _QueuedTodosRepository();
-    final firstRequest = Completer<List<Todo>>();
-    final secondRequest = Completer<List<Todo>>();
+    final firstRequest = Completer<PageChunk<Todo>>();
+    final secondRequest = Completer<PageChunk<Todo>>();
     repository.enqueue(firstRequest);
     repository.enqueue(secondRequest);
 
     final container = await _createContainer(repository);
     addTearDown(container.dispose);
-    final subscription = container.listen<AsyncValue<List<Todo>>>(
+    final subscription = container.listen<AsyncValue<TodosListState>>(
       todosControllerProvider,
       (previous, next) {},
     );
     addTearDown(subscription.close);
 
     final initialFuture = container.read(todosControllerProvider.future);
-    firstRequest.complete(<Todo>[createTodo()]);
+    firstRequest.complete(createTodoPage(items: <Todo>[createTodo()]));
     await initialFuture;
 
     final refreshFuture = container
         .read(todosControllerProvider.notifier)
         .refresh();
     var refreshCompleted = false;
-    refreshFuture.then((_) => refreshCompleted = true);
+    unawaited(refreshFuture.then((_) => refreshCompleted = true));
     await Future<void>.delayed(Duration.zero);
 
     final refreshingState = subscription.read();
     expect(refreshingState.isLoading, isTrue);
     expect(refreshingState.hasValue, isTrue);
-    expect(refreshingState.requireValue, <Todo>[createTodo()]);
+    expect(refreshingState.requireValue.items, <Todo>[createTodo()]);
     expect(refreshCompleted, isFalse);
 
-    secondRequest.complete(<Todo>[createTodo(id: 2)]);
+    secondRequest.complete(createTodoPage(items: <Todo>[createTodo(id: 2)]));
     await refreshFuture;
 
-    expect(subscription.read().requireValue, <Todo>[createTodo(id: 2)]);
+    expect(subscription.read().requireValue.items, <Todo>[createTodo(id: 2)]);
   });
 
   test('addTodo 성공 시 목록 앞에 새 할 일을 추가한다', () async {
     final repository = FakeTodosRepository()
-      ..fetchTodosResult = <Todo>[createTodo(id: 1)]
+      ..fetchTodosResult = createTodoPage(items: <Todo>[createTodo(id: 1)])
       ..addTodoResult = createTodo(id: 2, todo: '문서 정리하기');
     final container = await _createContainer(repository);
     addTearDown(container.dispose);
@@ -59,14 +61,15 @@ void main() {
     await container.read(todosControllerProvider.future);
     await container.read(todosControllerProvider.notifier).addTodo('문서 정리하기');
 
-    expect(container.read(todosControllerProvider).requireValue, <Todo>[
+    expect(container.read(todosControllerProvider).requireValue.items, <Todo>[
       createTodo(id: 2, todo: '문서 정리하기'),
       createTodo(id: 1),
     ]);
+    expect(container.read(todosControllerProvider).requireValue.totalCount, 2);
   });
 
   test('초기 로딩 중 addTodo가 발생해도 새 할 일을 유지한다', () async {
-    final fetchRequest = Completer<List<Todo>>();
+    final fetchRequest = Completer<PageChunk<Todo>>();
     final repository = FakeTodosRepository()
       ..fetchTodosResult = fetchRequest.future
       ..addTodoResult = createTodo(id: 2, todo: '새 작업', userId: 5);
@@ -77,10 +80,10 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     await container.read(todosControllerProvider.notifier).addTodo('새 작업');
-    fetchRequest.complete(<Todo>[createTodo(id: 1)]);
+    fetchRequest.complete(createTodoPage(items: <Todo>[createTodo(id: 1)]));
     await initialFuture;
 
-    expect(container.read(todosControllerProvider).requireValue, <Todo>[
+    expect(container.read(todosControllerProvider).requireValue.items, <Todo>[
       createTodo(id: 2, todo: '새 작업', userId: 5),
       createTodo(id: 1),
     ]);
@@ -88,7 +91,7 @@ void main() {
 
   test('stale refresh가 와도 직전 addTodo 결과를 유지한다', () async {
     final repository = FakeTodosRepository()
-      ..fetchTodosResult = <Todo>[createTodo(id: 1)]
+      ..fetchTodosResult = createTodoPage(items: <Todo>[createTodo(id: 1)])
       ..addTodoResult = createTodo(id: 2, todo: '새 작업', userId: 5);
     final container = await _createContainer(repository);
     addTearDown(container.dispose);
@@ -96,10 +99,12 @@ void main() {
     await container.read(todosControllerProvider.future);
     await container.read(todosControllerProvider.notifier).addTodo('새 작업');
 
-    repository.fetchTodosResult = <Todo>[createTodo(id: 1)];
+    repository.fetchTodosResult = createTodoPage(
+      items: <Todo>[createTodo(id: 1)],
+    );
     await container.read(todosControllerProvider.notifier).refresh();
 
-    expect(container.read(todosControllerProvider).requireValue, <Todo>[
+    expect(container.read(todosControllerProvider).requireValue.items, <Todo>[
       createTodo(id: 2, todo: '새 작업', userId: 5),
       createTodo(id: 1),
     ]);
@@ -107,7 +112,9 @@ void main() {
 
   test('toggleTodoCompletion 성공 시 해당 항목 상태를 갱신한다', () async {
     final repository = FakeTodosRepository()
-      ..fetchTodosResult = <Todo>[createTodo(id: 1, completed: false)]
+      ..fetchTodosResult = createTodoPage(
+        items: <Todo>[createTodo(id: 1, completed: false)],
+      )
       ..updateTodoResult = createTodo(id: 1, completed: true);
     final container = await _createContainer(repository);
     addTearDown(container.dispose);
@@ -118,14 +125,19 @@ void main() {
         .toggleTodoCompletion(createTodo(id: 1, completed: false));
 
     expect(
-      container.read(todosControllerProvider).requireValue.single.completed,
+      container
+          .read(todosControllerProvider)
+          .requireValue
+          .items
+          .single
+          .completed,
       isTrue,
     );
   });
 
   test('local-only todo 는 toggle 시 API 호출 없이 로컬 상태만 갱신한다', () async {
     final repository = FakeTodosRepository()
-      ..fetchTodosResult = <Todo>[createTodo(id: 1)]
+      ..fetchTodosResult = createTodoPage(items: <Todo>[createTodo(id: 1)])
       ..addTodoResult = createTodo(id: 255, todo: '새 작업', userId: 5);
     final container = await _createContainer(repository);
     addTearDown(container.dispose);
@@ -138,14 +150,16 @@ void main() {
 
     expect(repository.updateTodoCallCount, 0);
     expect(
-      container.read(todosControllerProvider).requireValue.first,
+      container.read(todosControllerProvider).requireValue.items.first,
       createTodo(id: 255, todo: '새 작업', completed: true, userId: 5),
     );
   });
 
   test('deleteTodo 성공 시 해당 항목을 목록에서 제거한다', () async {
     final repository = FakeTodosRepository()
-      ..fetchTodosResult = <Todo>[createTodo(id: 1), createTodo(id: 2)]
+      ..fetchTodosResult = createTodoPage(
+        items: <Todo>[createTodo(id: 1), createTodo(id: 2)],
+      )
       ..deleteTodoResult = createTodo(id: 1);
     final container = await _createContainer(repository);
     addTearDown(container.dispose);
@@ -155,14 +169,15 @@ void main() {
         .read(todosControllerProvider.notifier)
         .deleteTodo(createTodo(id: 1));
 
-    expect(container.read(todosControllerProvider).requireValue, <Todo>[
+    expect(container.read(todosControllerProvider).requireValue.items, <Todo>[
       createTodo(id: 2),
     ]);
+    expect(container.read(todosControllerProvider).requireValue.totalCount, 1);
   });
 
   test('local-only todo 는 delete 시 API 호출 없이 로컬 목록에서 제거한다', () async {
     final repository = FakeTodosRepository()
-      ..fetchTodosResult = <Todo>[createTodo(id: 1)]
+      ..fetchTodosResult = createTodoPage(items: <Todo>[createTodo(id: 1)])
       ..addTodoResult = createTodo(id: 255, todo: '새 작업', userId: 5);
     final container = await _createContainer(repository);
     addTearDown(container.dispose);
@@ -174,9 +189,66 @@ void main() {
         .deleteTodo(createTodo(id: 255, todo: '새 작업', userId: 5));
 
     expect(repository.deleteTodoCallCount, 0);
-    expect(container.read(todosControllerProvider).requireValue, <Todo>[
+    expect(container.read(todosControllerProvider).requireValue.items, <Todo>[
       createTodo(id: 1),
     ]);
+    expect(container.read(todosControllerProvider).requireValue.totalCount, 1);
+  });
+
+  test('loadMore 성공 시 다음 페이지를 이어 붙인다', () async {
+    final repository = FakeTodosRepository()
+      ..fetchTodosResult = createTodoPage(
+        items: <Todo>[createTodo(id: 1)],
+        total: 2,
+      );
+    final container = await _createContainer(repository);
+    addTearDown(container.dispose);
+
+    await container.read(todosControllerProvider.future);
+
+    repository.fetchTodosResult = createTodoPage(
+      items: <Todo>[createTodo(id: 2)],
+      total: 2,
+      skip: 1,
+    );
+
+    await container.read(todosControllerProvider.notifier).loadMore();
+
+    final pageState = container.read(todosControllerProvider).requireValue;
+    expect(pageState.items, <Todo>[createTodo(id: 1), createTodo(id: 2)]);
+    expect(pageState.hasMore, isFalse);
+    expect(repository.lastSkip, 1);
+  });
+
+  test('local-only todo 가 있어도 loadMore skip 은 remote 개수 기준으로 계산한다', () async {
+    final repository = FakeTodosRepository()
+      ..fetchTodosResult = createTodoPage(
+        items: <Todo>[createTodo(id: 1)],
+        total: 2,
+      )
+      ..addTodoResult = createTodo(id: 255, todo: '새 작업', userId: 5);
+    final container = await _createContainer(repository);
+    addTearDown(container.dispose);
+
+    await container.read(todosControllerProvider.future);
+    await container.read(todosControllerProvider.notifier).addTodo('새 작업');
+
+    repository.fetchTodosResult = createTodoPage(
+      items: <Todo>[createTodo(id: 2)],
+      total: 2,
+      skip: 1,
+    );
+
+    await container.read(todosControllerProvider.notifier).loadMore();
+
+    final pageState = container.read(todosControllerProvider).requireValue;
+    expect(repository.lastSkip, 1);
+    expect(pageState.items, <Todo>[
+      createTodo(id: 255, todo: '새 작업', userId: 5),
+      createTodo(id: 1),
+      createTodo(id: 2),
+    ]);
+    expect(pageState.totalCount, 3);
   });
 }
 
@@ -190,9 +262,10 @@ Future<ProviderContainer> _createContainer(TodosRepository repository) async {
 }
 
 class _QueuedTodosRepository implements TodosRepository {
-  final List<Completer<List<Todo>>> _requests = <Completer<List<Todo>>>[];
+  final List<Completer<PageChunk<Todo>>> _requests =
+      <Completer<PageChunk<Todo>>>[];
 
-  void enqueue(Completer<List<Todo>> request) {
+  void enqueue(Completer<PageChunk<Todo>> request) {
     _requests.add(request);
   }
 
@@ -207,7 +280,7 @@ class _QueuedTodosRepository implements TodosRepository {
   }
 
   @override
-  Future<List<Todo>> fetchTodosByUser({
+  Future<PageChunk<Todo>> fetchTodosByUser({
     required int userId,
     required int limit,
     required int skip,

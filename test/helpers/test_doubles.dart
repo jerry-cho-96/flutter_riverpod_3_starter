@@ -1,3 +1,4 @@
+import 'package:riverpod_origin_template/core/pagination/page_chunk.dart';
 import 'package:riverpod_origin_template/core/storage/token_storage.dart';
 import 'package:riverpod_origin_template/features/auth/domain/entities/app_user.dart';
 import 'package:riverpod_origin_template/features/auth/domain/entities/auth_session.dart';
@@ -172,6 +173,21 @@ Product createProduct({
   );
 }
 
+PageChunk<Product> createProductPage({
+  List<Product>? items,
+  int? total,
+  int skip = 0,
+  int limit = 20,
+}) {
+  final resolvedItems = items ?? <Product>[createProduct()];
+  return PageChunk<Product>(
+    items: resolvedItems,
+    total: total ?? resolvedItems.length,
+    skip: skip,
+    limit: limit,
+  );
+}
+
 class FakeProductsRepository implements ProductsRepository {
   Object? fetchProductsResult;
   Object? fetchProductDetailResult;
@@ -182,16 +198,16 @@ class FakeProductsRepository implements ProductsRepository {
   int? lastProductId;
 
   @override
-  Future<List<Product>> fetchProducts({
+  Future<PageChunk<Product>> fetchProducts({
     required int limit,
     required int skip,
   }) async {
     fetchProductsCallCount += 1;
     lastLimit = limit;
     lastSkip = skip;
-    return _resolve<List<Product>>(
+    return _resolve<PageChunk<Product>>(
       fetchProductsResult,
-      fallback: <Product>[createProduct()],
+      fallback: createProductPage(limit: limit, skip: skip),
     );
   }
 
@@ -226,6 +242,21 @@ Quote createQuote({
   return Quote(id: id, quote: quote, author: author);
 }
 
+PageChunk<Quote> createQuotePage({
+  List<Quote>? items,
+  int? total,
+  int skip = 0,
+  int limit = 20,
+}) {
+  final resolvedItems = items ?? <Quote>[createQuote()];
+  return PageChunk<Quote>(
+    items: resolvedItems,
+    total: total ?? resolvedItems.length,
+    skip: skip,
+    limit: limit,
+  );
+}
+
 class FakeQuotesRepository implements QuotesRepository {
   Object? fetchQuotesResult;
   int fetchQuotesCallCount = 0;
@@ -233,16 +264,16 @@ class FakeQuotesRepository implements QuotesRepository {
   int? lastSkip;
 
   @override
-  Future<List<Quote>> fetchQuotes({
+  Future<PageChunk<Quote>> fetchQuotes({
     required int limit,
     required int skip,
   }) async {
     fetchQuotesCallCount += 1;
     lastLimit = limit;
     lastSkip = skip;
-    return _resolve<List<Quote>>(
+    return _resolve<PageChunk<Quote>>(
       fetchQuotesResult,
-      fallback: <Quote>[createQuote()],
+      fallback: createQuotePage(limit: limit, skip: skip),
     );
   }
 

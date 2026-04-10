@@ -1,3 +1,4 @@
+import '../../../../core/pagination/page_chunk.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/products_repository.dart';
 import '../datasources/products_remote_data_source.dart';
@@ -9,7 +10,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
   final ProductsRemoteDataSource _remoteDataSource;
 
   @override
-  Future<List<Product>> fetchProducts({
+  Future<PageChunk<Product>> fetchProducts({
     required int limit,
     required int skip,
   }) async {
@@ -18,7 +19,12 @@ class ProductsRepositoryImpl implements ProductsRepository {
       skip: skip,
     );
 
-    return response.products.map(_mapProduct).toList(growable: false);
+    return PageChunk<Product>(
+      items: response.products.map(_mapProduct).toList(growable: false),
+      total: response.total,
+      skip: response.skip,
+      limit: response.limit,
+    );
   }
 
   @override

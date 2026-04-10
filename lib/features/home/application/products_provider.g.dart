@@ -13,7 +13,11 @@ part of 'products_provider.dart';
 const productsControllerProvider = ProductsControllerProvider._();
 
 final class ProductsControllerProvider
-    extends $AsyncNotifierProvider<ProductsController, List<Product>> {
+    extends
+        $AsyncNotifierProvider<
+          ProductsController,
+          PaginatedListState<Product>
+        > {
   const ProductsControllerProvider._()
     : super(
         from: null,
@@ -34,20 +38,29 @@ final class ProductsControllerProvider
 }
 
 String _$productsControllerHash() =>
-    r'b8e2d257067f2059c5fe7fc71bb53009cb64e902';
+    r'a6e9fce35a4314fb8e8b9946daa7c8bef72c7f61';
 
-abstract class _$ProductsController extends $AsyncNotifier<List<Product>> {
-  FutureOr<List<Product>> build();
+abstract class _$ProductsController
+    extends $AsyncNotifier<PaginatedListState<Product>> {
+  FutureOr<PaginatedListState<Product>> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<AsyncValue<List<Product>>, List<Product>>;
+    final ref =
+        this.ref
+            as $Ref<
+              AsyncValue<PaginatedListState<Product>>,
+              PaginatedListState<Product>
+            >;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Product>>, List<Product>>,
-              AsyncValue<List<Product>>,
+              AnyNotifier<
+                AsyncValue<PaginatedListState<Product>>,
+                PaginatedListState<Product>
+              >,
+              AsyncValue<PaginatedListState<Product>>,
               Object?,
               Object?
             >;

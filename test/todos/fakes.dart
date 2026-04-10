@@ -1,3 +1,4 @@
+import 'package:riverpod_origin_template/core/pagination/page_chunk.dart';
 import 'package:riverpod_origin_template/features/todos/domain/entities/todo.dart';
 import 'package:riverpod_origin_template/features/todos/domain/repositories/todos_repository.dart';
 
@@ -8,6 +9,21 @@ Todo createTodo({
   int userId = 1,
 }) {
   return Todo(id: id, todo: todo, completed: completed, userId: userId);
+}
+
+PageChunk<Todo> createTodoPage({
+  List<Todo>? items,
+  int? total,
+  int skip = 0,
+  int limit = 20,
+}) {
+  final resolvedItems = items ?? <Todo>[createTodo()];
+  return PageChunk<Todo>(
+    items: resolvedItems,
+    total: total ?? resolvedItems.length,
+    skip: skip,
+    limit: limit,
+  );
 }
 
 class FakeTodosRepository implements TodosRepository {
@@ -45,7 +61,7 @@ class FakeTodosRepository implements TodosRepository {
   }
 
   @override
-  Future<List<Todo>> fetchTodosByUser({
+  Future<PageChunk<Todo>> fetchTodosByUser({
     required int userId,
     required int limit,
     required int skip,
@@ -54,9 +70,9 @@ class FakeTodosRepository implements TodosRepository {
     lastUserId = userId;
     lastLimit = limit;
     lastSkip = skip;
-    return _resolve<List<Todo>>(
+    return _resolve<PageChunk<Todo>>(
       fetchTodosResult,
-      fallback: <Todo>[createTodo(userId: userId)],
+      fallback: createTodoPage(items: <Todo>[createTodo(userId: userId)]),
     );
   }
 

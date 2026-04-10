@@ -30,6 +30,10 @@ mixin class AuthPresentationStateMixin {
 }
 
 mixin class AuthPresentationEventMixin {
+  Future<void> ensureSessionRestore(WidgetRef ref) {
+    return ref.read(sessionControllerProvider.notifier).ensureSessionRestored();
+  }
+
   void listenSignInFailure(WidgetRef ref, BuildContext context) {
     ref.listen<AsyncValue<void>>(signInControllerProvider, (previous, next) {
       if (!next.hasError || previous == next) {

@@ -69,6 +69,7 @@ lib/
     errors/
     logging/
     network/
+    pagination/
     presentation/
     result/
     storage/
@@ -149,6 +150,12 @@ assets/
 - controller 는 repository 를 직접 호출하지 않고 usecase 만 호출합니다.
 - usecase 실패는 `AppFailure` 로 정규화하고, UI 는 이 계약만 직접 해석합니다.
 - 읽기 전용 목록도 확장 가능성을 위해 `AsyncNotifier` controller 패턴을 사용합니다.
+- 읽기 전용 조회 usecase 는 성공 결과만 메모이즈하고, 같은 요청의 동시 호출은 in-memory 로 합쳐 중복 fetch 를 줄입니다.
+- 강제 새로고침은 controller `refresh()` 에서 usecase 캐시를 비운 뒤 다시 조회합니다.
+- 단건 상세 조회는 요청 key 단위로 캐시하고, 대상 화면의 `refresh()` 에서는 해당 key 만 invalidation 합니다.
+- 읽기 전용 목록 feature 는 `PageChunk<T>` 와 `AsyncNotifier + PaginatedListState` 패턴으로 `refresh`, `load more`, `loadMoreFailure` 를 함께 관리합니다.
+- mutation 이 섞인 목록 feature 는 local-only 항목과 삭제 반영 때문에 `skip/total` 기준이 달라질 수 있으므로 feature 전용 paginated state 를 둘 수 있습니다. 현재 `todos` 는 `TodosListState` 로 이 예외를 다룹니다.
+- mutation 이 섞인 목록 feature 는 추가/수정/삭제 성공 뒤 조회 usecase 캐시를 비워 stale page 재사용을 막습니다.
 - `data/models` 는 외부/로컬 데이터 모델 보관 위치로 유지하고, DTO 임을 드러내기 위해 파일명은 `*_dto.dart` 를 사용합니다.
 - 화면 파일 네이밍은 `*_screen.dart` 를 표준으로 유지합니다.
 
@@ -172,7 +179,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[앱 시작] --> B[SessionController 초기화]
+    A[앱 시작] --> B["스플래시 진입 + ensureSessionRestored()"]
     B --> C{저장된 토큰 존재}
     C -- 아니오 --> D[Unauthenticated]
     C -- 예 --> E[auth/me 검증]
@@ -247,6 +254,8 @@ dart format lib test
 flutter analyze
 flutter test
 ```
+
+GitHub Actions 를 사용하는 저장소라면 기본 CI 는 `.github/workflows/ci.yml` 에서 같은 검증을 수행합니다.
 
 ## 권장 작업 흐름
 

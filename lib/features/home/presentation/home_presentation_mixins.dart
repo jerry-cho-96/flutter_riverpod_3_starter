@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/pagination/paginated_list_state.dart';
 import '../../auth/application/session_controller.dart';
 import '../../auth/application/session_state.dart';
 import '../../auth/domain/entities/app_user.dart';
@@ -8,7 +9,7 @@ import '../application/products_provider.dart';
 import '../domain/entities/product.dart';
 
 mixin class HomePresentationStateMixin {
-  AsyncValue<List<Product>> watchProducts(WidgetRef ref) {
+  AsyncValue<PaginatedListState<Product>> watchProducts(WidgetRef ref) {
     return ref.watch(productsControllerProvider);
   }
 
@@ -28,5 +29,9 @@ mixin class HomePresentationStateMixin {
 mixin class HomePresentationEventMixin {
   Future<void> refreshProducts(WidgetRef ref) {
     return ref.read(productsControllerProvider.notifier).refresh();
+  }
+
+  Future<void> loadMoreProducts(WidgetRef ref) {
+    return ref.read(productsControllerProvider.notifier).loadMore();
   }
 }

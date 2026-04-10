@@ -1,3 +1,4 @@
+import '../../../../core/pagination/page_chunk.dart';
 import '../../domain/entities/quote.dart';
 import '../../domain/repositories/quotes_repository.dart';
 import '../datasources/quotes_remote_data_source.dart';
@@ -9,7 +10,7 @@ class QuotesRepositoryImpl implements QuotesRepository {
   final QuotesRemoteDataSource _remoteDataSource;
 
   @override
-  Future<List<Quote>> fetchQuotes({
+  Future<PageChunk<Quote>> fetchQuotes({
     required int limit,
     required int skip,
   }) async {
@@ -18,7 +19,12 @@ class QuotesRepositoryImpl implements QuotesRepository {
       skip: skip,
     );
 
-    return response.quotes.map(_mapQuote).toList(growable: false);
+    return PageChunk<Quote>(
+      items: response.quotes.map(_mapQuote).toList(growable: false),
+      total: response.total,
+      skip: response.skip,
+      limit: response.limit,
+    );
   }
 
   Quote _mapQuote(QuoteDto dto) {

@@ -23,6 +23,7 @@ lib/
     errors/
     logging/
     network/
+    pagination/
     presentation/
     result/
     storage/
@@ -58,6 +59,8 @@ lib/
 - UI 와 domain/data 를 연결하는 오케스트레이션 계층입니다.
 - controller, feature-level state, page-scoped argument provider, usecase 를 둘 수 있습니다.
 - API 직접 호출 구현, DTO, Widget UI, domain entity 는 두지 않습니다.
+- 읽기 전용 목록은 `PageChunk<T> + AsyncNotifier + PaginatedListState` 조합으로 `refresh`, `load more`, `loadMoreFailure` 를 함께 다루는 패턴을 기본값으로 사용합니다.
+- 추가/수정/삭제가 함께 섞여 local-only 항목 또는 optimistic merge 가 필요한 목록은 `skip`, `total` 계산이 달라질 수 있으므로 feature 전용 paginated state 를 둘 수 있습니다.
 - 현재는 feature별 루트 파일 수가 아직 작으므로 `controllers/`, `states/`, `providers/` 하위 폴더를 강제하지 않습니다.
 - 아래 조건이 생기면 하위 폴더 분리를 검토합니다.
   - 생성 파일을 제외한 서로 다른 성격의 루트 파일이 5개 이상 섞이는 경우
@@ -90,6 +93,11 @@ lib/
 
 - usecase class 와 usecase provider 를 같은 파일에 둡니다.
 - usecase provider 는 feature 루트 provider 와 `core` 공통 provider 를 조합해 의존성을 주입받습니다.
+- 조회 usecase 는 성공 결과만 메모이즈하고, 같은 요청의 동시 호출은 in-memory 에서 합쳐 중복 fetch 를 줄일 수 있습니다.
+- 단건 상세 조회는 보통 entity id 같은 key 단위 캐시와 key 단위 invalidation 으로 유지합니다.
+- 목록 조회 contract 는 가능하면 `PageChunk<T>` 로 `items`, `total`, `skip`, `limit` 를 함께 전달해 정확한 pagination 판단 기준을 유지합니다.
+- mutation 목록은 `PageChunk<T>` 계약을 유지하되, application state 에 `loadedRemoteCount`, `remoteTotalCount` 같은 추가 메타데이터를 둘 수 있습니다.
+- mutation 성공 뒤에는 관련 목록 조회 usecase 캐시를 비워 stale page 를 재사용하지 않도록 유지합니다.
 
 ### page-scoped provider
 

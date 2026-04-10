@@ -45,6 +45,7 @@ lib/
     errors/         공통 failure 모델
     logging/        provider observer, logger
     network/        dio, interceptor, 예외 변환
+    pagination/     공통 pagination value/state
     presentation/   공통 UI 조각
     result/         Result 타입
     storage/        토큰 저장소
@@ -245,7 +246,7 @@ feature root providers -> data 구현체 조립
 
 여기서 하는 일:
 
-- 앱 시작 시 `restoreSession()` 호출
+- splash 진입 시 `ensureSessionRestored()` 로 최초 1회 세션 복구 시작
 - 내부적으로 `RestoreSessionUseCase` 실행
 - 토큰 존재 여부 확인
 - `auth/me` 확인
@@ -498,7 +499,21 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 예시:
 
 - 조회면 `AsyncNotifier`
+- 읽기 전용 목록 조회면 `PageChunk<T> + AsyncNotifier + PaginatedListState`
+- mutation 이 섞인 목록 조회면 feature 전용 paginated state
 - 저장/수정 액션이면 별도 controller
+
+목록 조회 controller 기본 규칙:
+
+- 첫 페이지는 `build()` 에서 로드
+- 강제 새로고침은 `refresh()`
+- 단건 상세 조회는 `refresh()` 에서 현재 key 캐시만 비움
+- 다음 페이지는 `loadMore()`
+- 다음 페이지 실패는 전체 화면 에러 대신 `loadMoreFailure` 로 분리
+- `hasMore` 는 가능하면 `PageChunk.total` 기준으로 계산
+- local-only 항목, 삭제 반영, optimistic merge 가 있으면 `loadedRemoteCount` 와 `remoteTotalCount` 를 분리해 관리
+- mutation 성공 뒤에는 관련 조회 usecase 캐시를 비워 다음 refresh/loadMore 가 새 데이터를 보게 함
+- 같은 요청 중복 호출은 usecase 캐시에서 합칠 수 있음
 
 ### 7) 화면 작성
 
@@ -574,7 +589,11 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 
 ```dart
 abstract interface class TodosRepository {
-  Future<List<Todo>> fetchTodos();
+  Future<PageChunk<Todo>> fetchTodosByUser({
+    required int userId,
+    required int limit,
+    required int skip,
+  });
 }
 ```
 
@@ -644,17 +663,30 @@ final getTodosUseCaseProvider = Provider<GetTodosUseCase>((ref) {
 @riverpod
 class TodosController extends _$TodosController {
   @override
-  Future<List<Todo>> build() => _load();
+  Future<TodosListState> build() => _load();
 
-  Future<List<Todo>> _load() async {
-    final result = await ref.read(getTodosUseCaseProvider).call();
+  Future<TodosListState> _load() async {
+    final result = await ref.read(getTodosUseCaseProvider).call(
+      userId: 1,
+      limit: 20,
+      skip: 0,
+    );
     return result.when(
-      success: (value) => value,
+      success: (page) => TodosListState(
+        items: page.items,
+        pageSize: 20,
+        remoteTotalCount: page.total,
+        loadedRemoteCount: page.items.length,
+        localOnlyCount: 0,
+      ),
       failure: (error) => throw error,
     );
   }
 }
 ```
+
+`todos` 처럼 목록 조회에 추가/수정/삭제가 함께 얹히는 화면은 `PaginatedListState` 대신 feature 전용 state 를 두는 편이 안전합니다.  
+이유는 local-only 항목이 생기면 화면에 보이는 `items.length` 와 다음 요청의 `skip` 값이 달라질 수 있기 때문입니다.
 
 ### Step 10. 화면 연결
 

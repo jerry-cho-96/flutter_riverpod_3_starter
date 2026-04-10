@@ -15,6 +15,8 @@ class ProductDetailController extends _$ProductDetailController {
   }
 
   Future<void> refresh() async {
+    final productId = ref.read(productDetailArgumentProvider);
+    ref.read(getProductDetailUseCaseProvider).clearCache(productId: productId);
     ref.invalidateSelf();
     await future;
   }

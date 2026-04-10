@@ -13,7 +13,7 @@ part of 'todos_controller.dart';
 const todosControllerProvider = TodosControllerProvider._();
 
 final class TodosControllerProvider
-    extends $AsyncNotifierProvider<TodosController, List<Todo>> {
+    extends $AsyncNotifierProvider<TodosController, TodosListState> {
   const TodosControllerProvider._()
     : super(
         from: null,
@@ -33,20 +33,20 @@ final class TodosControllerProvider
   TodosController create() => TodosController();
 }
 
-String _$todosControllerHash() => r'f37f79df13b5c297b9f1d20e90518271182583ee';
+String _$todosControllerHash() => r'95ece514a4b3a91d345eac84de74fecaa1e96849';
 
-abstract class _$TodosController extends $AsyncNotifier<List<Todo>> {
-  FutureOr<List<Todo>> build();
+abstract class _$TodosController extends $AsyncNotifier<TodosListState> {
+  FutureOr<TodosListState> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<AsyncValue<List<Todo>>, List<Todo>>;
+    final ref = this.ref as $Ref<AsyncValue<TodosListState>, TodosListState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Todo>>, List<Todo>>,
-              AsyncValue<List<Todo>>,
+              AnyNotifier<AsyncValue<TodosListState>, TodosListState>,
+              AsyncValue<TodosListState>,
               Object?,
               Object?
             >;

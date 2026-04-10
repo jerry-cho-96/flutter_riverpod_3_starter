@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../core/config/template_example.dart';
+import '../../../core/pagination/paginated_list_state.dart';
 import '../../../core/presentation/async_value_view.dart';
 import '../../auth/domain/entities/app_user.dart';
 import '../domain/entities/product.dart';
@@ -61,10 +62,11 @@ class HomeScreen extends ConsumerWidget
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
-          AsyncValueView<List<Product>>(
+          AsyncValueView<PaginatedListState<Product>>(
             value: productsAsync,
             onRetry: () => refreshProducts(ref),
-            data: (products) {
+            data: (pageState) {
+              final products = pageState.items;
               return Column(
                 children: <Widget>[
                   for (
@@ -87,12 +89,59 @@ class HomeScreen extends ConsumerWidget
                     if (index != products.length - 1)
                       const SizedBox(height: 12),
                   ],
+                  if (products.isNotEmpty) const SizedBox(height: 16),
+                  _PaginationFooter<Product>(
+                    pageState: pageState,
+                    onLoadMore: () => loadMoreProducts(ref),
+                  ),
                 ],
               );
             },
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PaginationFooter<T> extends StatelessWidget {
+  const _PaginationFooter({required this.pageState, required this.onLoadMore});
+
+  final PaginatedListState<T> pageState;
+  final VoidCallback onLoadMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final failure = pageState.loadMoreFailure;
+    if (pageState.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (failure != null) {
+      return Column(
+        children: <Widget>[
+          Text(failure.message, textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: onLoadMore,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('상품 더 불러오기 재시도'),
+          ),
+        ],
+      );
+    }
+
+    if (!pageState.hasMore) {
+      return const SizedBox.shrink();
+    }
+
+    return OutlinedButton.icon(
+      onPressed: onLoadMore,
+      icon: const Icon(Icons.expand_more_rounded),
+      label: const Text('상품 더 보기'),
     );
   }
 }

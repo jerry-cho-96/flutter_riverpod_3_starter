@@ -1,5 +1,6 @@
+import '../../../../core/pagination/page_chunk.dart';
 import '../entities/quote.dart';
 
 abstract interface class QuotesRepository {
-  Future<List<Quote>> fetchQuotes({required int limit, required int skip});
+  Future<PageChunk<Quote>> fetchQuotes({required int limit, required int skip});
 }

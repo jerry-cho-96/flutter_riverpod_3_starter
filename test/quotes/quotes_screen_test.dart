@@ -10,9 +10,9 @@ import '../helpers/test_doubles.dart';
 void main() {
   testWidgets('명언 화면은 명언 목록과 작성자를 렌더링한다', (tester) async {
     final repository = FakeQuotesRepository()
-      ..fetchQuotesResult = <Quote>[
-        createQuote(quote: 'Stay curious.', author: 'Explorer'),
-      ];
+      ..fetchQuotesResult = createQuotePage(
+        items: <Quote>[createQuote(quote: 'Stay curious.', author: 'Explorer')],
+      );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -26,5 +26,6 @@ void main() {
     expect(find.text('명언 모음'), findsOneWidget);
     expect(find.textContaining('Stay curious.'), findsOneWidget);
     expect(find.text('Explorer'), findsOneWidget);
+    expect(find.text('명언 더 보기'), findsNothing);
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_failure.dart';
 import '../../../core/presentation/async_value_view.dart';
+import '../application/todos_list_state.dart';
 import '../domain/entities/todo.dart';
 import 'todos_presentation_mixins.dart';
 
@@ -86,17 +87,21 @@ class _TodosScreenState extends ConsumerState<TodosScreen>
               ),
             ),
             const SizedBox(height: 20),
-            AsyncValueView<List<Todo>>(
+            AsyncValueView<TodosListState>(
               value: todosAsync,
               loadingLabel: '할 일 목록을 불러오는 중입니다...',
               onRetry: () => refreshTodos(ref),
-              data: (todos) {
+              data: (pageState) {
+                final todos = pageState.items;
                 if (todos.isEmpty) {
                   return const _EmptyTodosCard();
                 }
 
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
+                    _TodosSummary(pageState: pageState),
+                    const SizedBox(height: 16),
                     for (
                       var index = 0;
                       index < todos.length;
@@ -112,6 +117,11 @@ class _TodosScreenState extends ConsumerState<TodosScreen>
                       ),
                       if (index != todos.length - 1) const SizedBox(height: 12),
                     ],
+                    const SizedBox(height: 16),
+                    _TodosPaginationFooter(
+                      pageState: pageState,
+                      onLoadMore: () => loadMoreTodos(ref),
+                    ),
                   ],
                 );
               },
@@ -200,6 +210,93 @@ class _TodosScreenState extends ConsumerState<TodosScreen>
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _TodosSummary extends StatelessWidget {
+  const _TodosSummary({required this.pageState});
+
+  final TodosListState pageState;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          '총 ${pageState.totalCount}개 항목',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: <Widget>[
+            Chip(
+              avatar: const Icon(Icons.sync_rounded),
+              label: Text(
+                '동기화 ${pageState.loadedRemoteCount}/${pageState.remoteTotalCount}',
+              ),
+            ),
+            if (pageState.localOnlyCount > 0)
+              Chip(
+                avatar: const Icon(Icons.cloud_off_rounded),
+                label: Text('로컬 추가 ${pageState.localOnlyCount}개'),
+              ),
+            if (pageState.remoteRemainingCount > 0)
+              Chip(
+                avatar: const Icon(Icons.more_horiz_rounded),
+                label: Text('남은 원격 ${pageState.remoteRemainingCount}개'),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TodosPaginationFooter extends StatelessWidget {
+  const _TodosPaginationFooter({
+    required this.pageState,
+    required this.onLoadMore,
+  });
+
+  final TodosListState pageState;
+  final VoidCallback onLoadMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final failure = pageState.loadMoreFailure;
+    if (pageState.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (failure != null) {
+      return Column(
+        children: <Widget>[
+          Text(failure.message, textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: onLoadMore,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('할 일 더 불러오기 재시도'),
+          ),
+        ],
+      );
+    }
+
+    if (!pageState.hasMore) {
+      return const SizedBox.shrink();
+    }
+
+    return OutlinedButton.icon(
+      onPressed: onLoadMore,
+      icon: const Icon(Icons.expand_more_rounded),
+      label: const Text('할 일 더 보기'),
+    );
   }
 }
 

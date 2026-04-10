@@ -1,3 +1,4 @@
+import '../../../../core/pagination/page_chunk.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todos_repository.dart';
 import '../datasources/todos_remote_data_source.dart';
@@ -21,7 +22,7 @@ class TodosRepositoryImpl implements TodosRepository {
   }
 
   @override
-  Future<List<Todo>> fetchTodosByUser({
+  Future<PageChunk<Todo>> fetchTodosByUser({
     required int userId,
     required int limit,
     required int skip,
@@ -32,7 +33,12 @@ class TodosRepositoryImpl implements TodosRepository {
       skip: skip,
     );
 
-    return response.todos.map(_mapTodo).toList(growable: false);
+    return PageChunk<Todo>(
+      items: response.todos.map(_mapTodo).toList(growable: false),
+      total: response.total,
+      skip: response.skip,
+      limit: response.limit,
+    );
   }
 
   @override

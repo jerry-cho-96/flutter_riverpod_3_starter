@@ -11,6 +11,31 @@ import '../helpers/test_doubles.dart';
 
 void main() {
   group('SessionController', () {
+    test('ensureSessionRestored 는 최초 1회만 세션 복구를 수행한다', () async {
+      final storedTokens = createTokens();
+      final user = createUser();
+      final repository = FakeAuthRepository()..enqueueCurrentUserResult(user);
+      final storage = FakeTokenStorage(storedTokens);
+      final container = _createContainer(
+        repository: repository,
+        storage: storage,
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(sessionControllerProvider.notifier);
+
+      await notifier.ensureSessionRestored();
+      await notifier.ensureSessionRestored();
+
+      expect(repository.fetchCurrentUserCallCount, 1);
+      expect(
+        container.read(sessionControllerProvider),
+        SessionState.authenticated(
+          session: createSession(tokens: storedTokens, user: user),
+        ),
+      );
+    });
+
     test('저장된 토큰이 없으면 unauthenticated 상태가 된다', () async {
       final repository = FakeAuthRepository();
       final storage = FakeTokenStorage();

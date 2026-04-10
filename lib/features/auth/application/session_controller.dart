@@ -10,17 +10,21 @@ part 'session_controller.g.dart';
 
 @Riverpod(keepAlive: true)
 class SessionController extends _$SessionController {
-  bool _didBootstrap = false;
+  bool _didRequestBootstrap = false;
   bool _isRestoring = false;
 
   @override
   SessionState build() {
-    if (!_didBootstrap) {
-      _didBootstrap = true;
-      Future<void>.microtask(restoreSession);
+    return const SessionState.unknown();
+  }
+
+  Future<void> ensureSessionRestored() async {
+    if (_didRequestBootstrap) {
+      return;
     }
 
-    return const SessionState.unknown();
+    _didRequestBootstrap = true;
+    await restoreSession();
   }
 
   Future<void> restoreSession() async {

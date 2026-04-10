@@ -1,14 +1,33 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'auth_presentation_mixins.dart';
 
-class SplashScreen extends ConsumerWidget
-    with AuthPresentationStateMixin, AuthPresentationEventMixin {
-  const SplashScreen({super.key});
+class SplashScreen extends ConsumerStatefulWidget {
+  const SplashScreen({super.key, this.autoRestoreSession = true});
+
+  final bool autoRestoreSession;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends ConsumerState<SplashScreen>
+    with AuthPresentationStateMixin, AuthPresentationEventMixin {
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.autoRestoreSession) {
+      return;
+    }
+
+    unawaited(Future<void>.microtask(() => ensureSessionRestore(ref)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final failureMessage = restorationFailureMessage(ref);
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/pagination/paginated_list_state.dart';
 import '../../../core/presentation/async_value_view.dart';
 import '../domain/entities/quote.dart';
 import 'quotes_presentation_mixins.dart';
@@ -39,11 +40,12 @@ class QuotesScreen extends ConsumerWidget
               ),
             ),
             const SizedBox(height: 20),
-            AsyncValueView<List<Quote>>(
+            AsyncValueView<PaginatedListState<Quote>>(
               value: quotesAsync,
               loadingLabel: '명언 목록을 불러오는 중입니다...',
               onRetry: () => refreshQuotes(ref),
-              data: (quotes) {
+              data: (pageState) {
+                final quotes = pageState.items;
                 return Column(
                   children: <Widget>[
                     for (
@@ -55,6 +57,11 @@ class QuotesScreen extends ConsumerWidget
                       if (index != quotes.length - 1)
                         const SizedBox(height: 12),
                     ],
+                    if (quotes.isNotEmpty) const SizedBox(height: 16),
+                    _QuotesPaginationFooter(
+                      pageState: pageState,
+                      onLoadMore: () => loadMoreQuotes(ref),
+                    ),
                   ],
                 );
               },
@@ -62,6 +69,51 @@ class QuotesScreen extends ConsumerWidget
           ],
         ),
       ),
+    );
+  }
+}
+
+class _QuotesPaginationFooter extends StatelessWidget {
+  const _QuotesPaginationFooter({
+    required this.pageState,
+    required this.onLoadMore,
+  });
+
+  final PaginatedListState<Quote> pageState;
+  final VoidCallback onLoadMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final failure = pageState.loadMoreFailure;
+    if (pageState.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (failure != null) {
+      return Column(
+        children: <Widget>[
+          Text(failure.message, textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: onLoadMore,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('명언 더 불러오기 재시도'),
+          ),
+        ],
+      );
+    }
+
+    if (!pageState.hasMore) {
+      return const SizedBox.shrink();
+    }
+
+    return OutlinedButton.icon(
+      onPressed: onLoadMore,
+      icon: const Icon(Icons.expand_more_rounded),
+      label: const Text('명언 더 보기'),
     );
   }
 }

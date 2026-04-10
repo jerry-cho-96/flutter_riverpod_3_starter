@@ -1,7 +1,8 @@
+import '../../../../core/pagination/page_chunk.dart';
 import '../entities/todo.dart';
 
 abstract interface class TodosRepository {
-  Future<List<Todo>> fetchTodosByUser({
+  Future<PageChunk<Todo>> fetchTodosByUser({
     required int userId,
     required int limit,
     required int skip,

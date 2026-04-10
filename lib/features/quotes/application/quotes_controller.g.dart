@@ -13,7 +13,8 @@ part of 'quotes_controller.dart';
 const quotesControllerProvider = QuotesControllerProvider._();
 
 final class QuotesControllerProvider
-    extends $AsyncNotifierProvider<QuotesController, List<Quote>> {
+    extends
+        $AsyncNotifierProvider<QuotesController, PaginatedListState<Quote>> {
   const QuotesControllerProvider._()
     : super(
         from: null,
@@ -33,20 +34,29 @@ final class QuotesControllerProvider
   QuotesController create() => QuotesController();
 }
 
-String _$quotesControllerHash() => r'84f81dd02ca7ca7003b00a3c6ef2a8ae7ccb8066';
+String _$quotesControllerHash() => r'546f4a97e5f73c26887946cf7c879129829bf9ac';
 
-abstract class _$QuotesController extends $AsyncNotifier<List<Quote>> {
-  FutureOr<List<Quote>> build();
+abstract class _$QuotesController
+    extends $AsyncNotifier<PaginatedListState<Quote>> {
+  FutureOr<PaginatedListState<Quote>> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<AsyncValue<List<Quote>>, List<Quote>>;
+    final ref =
+        this.ref
+            as $Ref<
+              AsyncValue<PaginatedListState<Quote>>,
+              PaginatedListState<Quote>
+            >;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Quote>>, List<Quote>>,
-              AsyncValue<List<Quote>>,
+              AnyNotifier<
+                AsyncValue<PaginatedListState<Quote>>,
+                PaginatedListState<Quote>
+              >,
+              AsyncValue<PaginatedListState<Quote>>,
               Object?,
               Object?
             >;
