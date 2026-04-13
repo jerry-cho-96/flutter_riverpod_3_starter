@@ -110,6 +110,13 @@ lib/
 - 특정 화면 route argument 처럼 페이지 범위에서만 의미가 있는 provider 는 `application` 에 두고, 페이지 진입점의 `ProviderScope` override 로 주입합니다.
 - 전역 app scope 나 feature 루트 provider 파일로 끌어올리지 않습니다.
 
+### Provider 구현 선택
+
+- controller 와 application 성격의 provider 는 generator 기반 `@riverpod` / `@Riverpod` 를 우선 사용합니다.
+- page-scoped override, 명시적 dependency, `keepAlive` 제어, 세션/앱 상태 파생값처럼 provider 계약 자체가 중요한 경우도 generator 기반을 우선 사용합니다.
+- repository wiring, datasource wiring, usecase wiring, router/config/logger/storage 같은 공통 infra 조립은 plain `Provider` 를 유지합니다.
+- 즉, 이 저장소에서 generator 기반 provider 는 “상태/수명/의존성 계약”을 드러내는 용도이고, plain `Provider` 는 “조립과 주입” 용도입니다.
+
 ## 라우팅 운영 규칙
 
 - `app_routes.dart`: path/name 상수와 location 생성만 담당합니다.

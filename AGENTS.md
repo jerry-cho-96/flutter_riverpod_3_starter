@@ -201,6 +201,9 @@ feature/
 
 - side effect 와 상태 전이가 있으면 class-based provider 를 사용합니다.
 - 단순 조립/설정/의존성 주입은 `Provider` 를 사용합니다.
+- generator 기반 `@riverpod` / `@Riverpod` 는 controller 와 application 성격의 provider 에 우선 사용합니다.
+- generator 기반 provider 는 page-scoped override, 명시적 dependency, `keepAlive` 제어, 앱/세션 상태 파생값처럼 provider 자체 계약이 중요한 경우에 사용합니다.
+- repository wiring, datasource wiring, usecase wiring, router/config/logger/storage 같은 공통 infra 조립은 plain `Provider` 를 유지합니다.
 - controller 는 usecase 만 호출합니다.
 - provider 안에서 UI 관련 로직을 만들지 않습니다.
 - provider 이름은 역할이 드러나야 합니다.

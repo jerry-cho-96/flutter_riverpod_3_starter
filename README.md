@@ -162,6 +162,7 @@ assets/
 - `domain` 은 엔티티, value object, repository 계약만 가지며 DTO/JSON/storage/network 타입을 직접 알지 않습니다.
 - `data` 는 DTO, remote/local datasource, repository 구현을 가집니다.
 - feature 루트의 composition provider 가 repository 구현체를 조립하고, usecase provider 는 필요 시 `core` provider 와 함께 의존성을 주입받습니다.
+- controller 와 application 성격 provider 는 generator 기반을 우선 사용하고, wiring/config/infra 조립은 plain `Provider` 를 유지합니다.
 - controller 는 repository 를 직접 호출하지 않고 usecase 만 호출합니다.
 - usecase 실패는 `AppFailure` 로 정규화하고, UI 는 이 계약만 직접 해석합니다.
 - 읽기 전용 목록도 확장 가능성을 위해 `AsyncNotifier` controller 패턴을 사용합니다.

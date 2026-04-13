@@ -327,6 +327,12 @@ feature root providers -> data 구현체 조립
 
 feature 루트의 `auth_providers.dart`, `home_providers.dart` 는 현재 repository wiring 전용 공개 진입점으로 사용합니다. 화면 전용 provider 나 내부 helper provider 는 여기에 추가하지 않습니다.
 
+정리하면:
+
+- controller 와 application 성격 provider 는 generator 기반 `@riverpod` / `@Riverpod` 를 우선 사용합니다.
+- page-scoped override, 명시적 dependency, `keepAlive` 제어, 세션/앱 상태 파생값처럼 provider 자체 계약이 중요한 경우도 generator 기반이 우선입니다.
+- repository wiring, datasource wiring, usecase wiring, router/config/logger/storage 조립은 plain `Provider` 를 유지합니다.
+
 ### Observer
 
 `core/logging/app_provider_observer.dart`
