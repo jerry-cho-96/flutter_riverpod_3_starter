@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/errors/app_failure.dart';
-import '../application/session_controller.dart';
-import '../application/session_state.dart';
-import '../application/sign_in_controller.dart';
+import '../../../../core/errors/app_failure.dart';
+import '../../application/controllers/session_controller.dart';
+import '../../application/controllers/sign_in_controller.dart';
+import '../../application/states/session_state.dart';
 
 mixin class AuthPresentationStateMixin {
   AsyncValue<void> watchSignInState(WidgetRef ref) {

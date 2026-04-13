@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/auth/application/session_controller.dart';
-import '../../features/auth/application/session_state.dart';
+import '../../features/auth/application/controllers/session_controller.dart';
+import '../../features/auth/application/states/session_state.dart';
 
 class RouterRefreshListenable extends ChangeNotifier {
   void refresh() => notifyListeners();

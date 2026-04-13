@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 
-import '../../../features/auth/presentation/login_screen.dart';
-import '../../../features/auth/presentation/splash_screen.dart';
+import '../../../features/auth/presentation/screens/login_screen.dart';
+import '../../../features/auth/presentation/screens/splash_screen.dart';
 import '../app_routes.dart';
 
 List<RouteBase> buildAuthRouteModule() {

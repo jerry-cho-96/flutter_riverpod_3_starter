@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_origin_template/core/network/models/app_exception.dart';
 import 'package:riverpod_origin_template/core/storage/token_storage.dart';
 import 'package:riverpod_origin_template/features/auth/auth_providers.dart';
-import 'package:riverpod_origin_template/features/auth/application/session_controller.dart';
-import 'package:riverpod_origin_template/features/auth/application/session_state.dart';
-import 'package:riverpod_origin_template/features/auth/application/sign_in_controller.dart';
+import 'package:riverpod_origin_template/features/auth/application/controllers/session_controller.dart';
+import 'package:riverpod_origin_template/features/auth/application/controllers/sign_in_controller.dart';
+import 'package:riverpod_origin_template/features/auth/application/states/session_state.dart';
 
 import '../helpers/test_doubles.dart';
 

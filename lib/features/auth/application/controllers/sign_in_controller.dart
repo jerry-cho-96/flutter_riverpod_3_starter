@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'session_controller.dart';
-import 'usecases/sign_in_use_case.dart';
+import '../usecases/sign_in_use_case.dart';
 
 part 'sign_in_controller.g.dart';
 

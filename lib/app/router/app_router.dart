@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/application/session_controller.dart';
+import '../../features/auth/application/controllers/session_controller.dart';
 import 'app_route_guard.dart';
 import 'app_routes.dart';
 import 'router_refresh_listenable.dart';

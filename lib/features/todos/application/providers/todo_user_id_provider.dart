@@ -1,10 +1,13 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/errors/app_failure.dart';
-import '../../auth/application/session_controller.dart';
-import '../../auth/application/session_state.dart';
+import '../../../auth/application/controllers/session_controller.dart';
+import '../../../auth/application/states/session_state.dart';
 
-final currentTodoUserIdProvider = Provider<int>((ref) {
+part 'todo_user_id_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+int todoUserId(Ref ref) {
   final sessionState = ref.watch(sessionControllerProvider);
 
   return switch (sessionState) {
@@ -14,4 +17,4 @@ final currentTodoUserIdProvider = Provider<int>((ref) {
       type: FailureType.unauthorized,
     ),
   };
-});
+}

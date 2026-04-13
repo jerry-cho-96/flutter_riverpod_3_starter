@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
 
-import '../../../features/quotes/presentation/quotes_screen.dart';
+import '../../../features/quotes/presentation/screens/quotes_screen.dart';
 import '../app_routes.dart';
 
 List<RouteBase> buildQuotesRouteModule() {

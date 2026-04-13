@@ -6,7 +6,7 @@ import 'package:riverpod_origin_template/core/errors/app_failure.dart';
 import 'package:riverpod_origin_template/core/network/models/app_exception.dart';
 import 'package:riverpod_origin_template/core/pagination/page_chunk.dart';
 import 'package:riverpod_origin_template/core/pagination/paginated_list_state.dart';
-import 'package:riverpod_origin_template/features/home/application/products_provider.dart';
+import 'package:riverpod_origin_template/features/home/application/controllers/products_provider.dart';
 import 'package:riverpod_origin_template/features/home/domain/entities/product.dart';
 import 'package:riverpod_origin_template/features/home/domain/repositories/products_repository.dart';
 import 'package:riverpod_origin_template/features/home/home_providers.dart';

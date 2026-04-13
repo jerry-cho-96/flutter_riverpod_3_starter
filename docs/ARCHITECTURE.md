@@ -1,6 +1,6 @@
 # 스타터킷 아키텍처 운영 규칙
 
-이 문서는 현재 `riverpod_origin_template` 의 구조를 보수적으로 유지하면서, 새 기능 추가와 리팩터링 시 판단 기준을 명확히 남기기 위한 운영 문서입니다.
+이 문서는 현재 `riverpod_origin_template` 의 구조를 유지하면서, 새 기능 추가와 리팩터링 시 판단 기준을 명확히 남기기 위한 운영 문서입니다.
 
 핵심 원칙은 아래 한 문장입니다.
 
@@ -30,6 +30,9 @@ lib/
   features/
     <feature>/
       application/
+        controllers/
+        providers/
+        states/
         usecases/
       data/
         datasources/
@@ -40,10 +43,12 @@ lib/
         repositories/
         value_objects/
       presentation/
+        mixins/
+        screens/
       <feature>_providers.dart
 ```
 
-이 구조는 이미 계층 분리가 잘 되어 있으므로, 지금 단계에서는 대규모 폴더 이동보다 역할 규칙을 명확히 문서화하는 편이 이득이 큽니다.
+이 구조는 계층 분리와 탐색 비용 사이의 균형을 기준으로 정리한 기본 템플릿입니다.
 
 ## 레이어 책임
 
@@ -52,7 +57,9 @@ lib/
 - 화면과 위젯, 화면 전용 facade 성격의 mixin class 를 둡니다.
 - `ref.watch/read`, controller 호출 위임, 단순 파생 상태까지만 담당합니다.
 - repository, datasource, storage 구현체를 직접 알면 안 됩니다.
-- 파일 수가 늘어나면 `screens/`, `widgets/`, `mixins/`, `listeners/` 로 분리합니다.
+- `presentation/screens` 를 화면 기본 위치로 사용합니다.
+- `presentation/mixins` 를 화면 전용 facade 기본 위치로 사용합니다.
+- 필요하면 `widgets/`, `listeners/` 를 추가합니다.
 
 ### application
 
@@ -61,10 +68,9 @@ lib/
 - API 직접 호출 구현, DTO, Widget UI, domain entity 는 두지 않습니다.
 - 읽기 전용 목록은 `PageChunk<T> + AsyncNotifier + PaginatedListState` 조합으로 `refresh`, `load more`, `loadMoreFailure` 를 함께 다루는 패턴을 기본값으로 사용합니다.
 - 추가/수정/삭제가 함께 섞여 local-only 항목 또는 optimistic merge 가 필요한 목록은 `skip`, `total` 계산이 달라질 수 있으므로 feature 전용 paginated state 를 둘 수 있습니다.
-- 현재는 feature별 루트 파일 수가 아직 작으므로 `controllers/`, `states/`, `providers/` 하위 폴더를 강제하지 않습니다.
-- 아래 조건이 생기면 하위 폴더 분리를 검토합니다.
-  - 생성 파일을 제외한 서로 다른 성격의 루트 파일이 5개 이상 섞이는 경우
-  - controller/state/provider 탐색 비용이 눈에 띄게 커지는 경우
+- `application/controllers` 를 controller 기본 위치로 사용합니다.
+- `application/states` 를 feature-level state 기본 위치로 사용합니다.
+- `application/providers` 를 page-scoped argument provider 와 feature 내부 provider 기본 위치로 사용합니다.
 
 ### domain
 
@@ -155,9 +161,10 @@ lib/
 features/
   example_feature/
     application/
+      controllers/
+      providers/
+      states/
       usecases/
-      example_controller.dart
-      example_state.dart
     data/
       datasources/
       models/
@@ -167,7 +174,8 @@ features/
       repositories/
       value_objects/
     presentation/
-      example_screen.dart
+      mixins/
+      screens/
     example_feature_providers.dart
 ```
 
@@ -186,8 +194,8 @@ features/
 
 ## 판단 메모
 
-- `application` 하위 분리: 현재 파일 수와 책임 복잡도가 아직 낮아서 보류, 대신 하위 폴더 도입 기준을 문서화.
-- `presentation` 하위 구조: 현재 파일 수가 적고 mixin class 도 실제 mixin 이라서 유지, 증가 시 `screens/widgets/mixins/listeners` 로 분리.
+- `application` 하위 구조: `controllers/`, `providers/`, `states/`, `usecases/` 를 기본값으로 사용.
+- `presentation` 하위 구조: `screens/`, `mixins/` 를 기본값으로 사용하고, 필요 시 `widgets/`, `listeners/` 를 추가.
 - `auth_providers.dart`, `home_providers.dart`: 현재는 repository wiring 전용이라 유지.
 - `app_router.dart` / `app_route_guard.dart` / `route_modules/*`: 조립, 정책, 페이지 정의가 이미 분리되어 있어 구조 변경 불필요.
 - `authenticated_shell.dart`: 공통 scaffold 역할만 수행하고 있어 유지.

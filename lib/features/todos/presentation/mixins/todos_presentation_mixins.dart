@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../application/todos_controller.dart';
-import '../application/todos_list_state.dart';
-import '../domain/entities/todo.dart';
+import '../../application/controllers/todos_controller.dart';
+import '../../application/states/todos_list_state.dart';
+import '../../domain/entities/todo.dart';
 
 mixin class TodosPresentationStateMixin {
   AsyncValue<TodosListState> watchTodos(WidgetRef ref) {

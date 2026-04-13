@@ -1,8 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../domain/entities/product.dart';
-import 'product_detail_argument_provider.dart';
-import 'usecases/get_product_detail_use_case.dart';
+import '../../domain/entities/product.dart';
+import '../providers/product_detail_argument_provider.dart';
+import '../usecases/get_product_detail_use_case.dart';
 
 part 'product_detail_controller.g.dart';
 

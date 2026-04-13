@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_origin_template/core/pagination/page_chunk.dart';
-import 'package:riverpod_origin_template/features/todos/application/current_todo_user_id_provider.dart';
-import 'package:riverpod_origin_template/features/todos/application/todos_controller.dart';
-import 'package:riverpod_origin_template/features/todos/application/todos_list_state.dart';
+import 'package:riverpod_origin_template/features/todos/application/controllers/todos_controller.dart';
+import 'package:riverpod_origin_template/features/todos/application/providers/todo_user_id_provider.dart';
+import 'package:riverpod_origin_template/features/todos/application/states/todos_list_state.dart';
 import 'package:riverpod_origin_template/features/todos/domain/entities/todo.dart';
 import 'package:riverpod_origin_template/features/todos/domain/repositories/todos_repository.dart';
 import 'package:riverpod_origin_template/features/todos/todos_providers.dart';
@@ -256,7 +256,7 @@ Future<ProviderContainer> _createContainer(TodosRepository repository) async {
   return ProviderContainer(
     overrides: [
       todosRepositoryProvider.overrideWithValue(repository),
-      currentTodoUserIdProvider.overrideWithValue(5),
+      todoUserIdProvider.overrideWithValue(5),
     ],
   );
 }

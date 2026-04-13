@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'auth_presentation_mixins.dart';
+import '../mixins/auth_presentation_mixins.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key, this.autoRestoreSession = true});

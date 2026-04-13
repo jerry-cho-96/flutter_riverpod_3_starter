@@ -1,4 +1,4 @@
-import '../../features/auth/application/session_state.dart';
+import '../../features/auth/application/states/session_state.dart';
 import 'app_routes.dart';
 
 class AppRouteGuard {

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/presentation/async_value_view.dart';
-import '../application/product_detail_argument_provider.dart';
-import '../domain/entities/product.dart';
-import 'product_detail_presentation_mixins.dart';
+import '../../../../core/presentation/async_value_view.dart';
+import '../../application/providers/product_detail_argument_provider.dart';
+import '../../domain/entities/product.dart';
+import '../mixins/product_detail_presentation_mixins.dart';
 
 class ProductDetailScreen extends ConsumerWidget {
   const ProductDetailScreen({super.key, required this.productId});

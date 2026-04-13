@@ -51,33 +51,49 @@ lib/
     storage/        토큰 저장소
   features/
     auth/
+      auth_providers.dart
       application/
+        controllers/  세션/로그인 controller
+        states/       세션 상태
         usecases/   로그인/로그아웃/세션복구 usecase
       data/         remote datasource, dto, repository 구현
       domain/       entity, value object, repository contract
-      presentation/ splash, login 화면
-      auth_providers.dart
+      presentation/
+        mixins/     화면 전용 provider facade
+        screens/    splash, login 화면
     home/
+      home_providers.dart
       application/
+        controllers/  상품 목록/상세 controller
+        providers/    page-scoped argument provider
         usecases/   상품 조회 usecase
       data/
       domain/
       presentation/
-      home_providers.dart
+        mixins/     화면 전용 provider facade
+        screens/    home, detail, invalid detail 화면
     quotes/
+      quotes_providers.dart
       application/
+        controllers/  명언 목록 controller
         usecases/   명언 목록 조회 usecase
       data/
       domain/
       presentation/
-      quotes_providers.dart
+        mixins/     화면 전용 provider facade
+        screens/    quotes 화면
     todos/
+      todos_providers.dart
       application/
+        controllers/  할 일 목록 controller
+        providers/    사용자 id provider
+        states/       mutation 포함 목록 상태
         usecases/   할 일 목록/추가/수정/삭제 usecase
       data/
       domain/
       presentation/
-      todos_providers.dart
+        mixins/     화면 전용 provider facade
+        screens/    todos 화면
 assets/
   images/          일반 이미지
   icons/           앱/feature 아이콘
@@ -128,7 +144,7 @@ assets/
 - `ProductsController`
 - `ProductDetailController`
 
-현재 템플릿은 `application` 루트에 controller, state, page-scoped provider 를 함께 두고 있습니다. 아직 복잡도가 낮기 때문에 유지하며, 구조가 커질 때만 `controllers/`, `states/`, `providers/`, `usecases/` 하위 폴더 분리를 검토합니다.
+현재 템플릿은 `application/controllers`, `application/providers`, `application/states`, `application/usecases` 를 기본 구조로 사용합니다. `presentation` 도 `screens`, `mixins` 를 기본 하위 구조로 사용하며, 필요 시 `widgets`, `listeners` 를 추가합니다.
 
 #### usecase 를 둔 이유
 
@@ -188,7 +204,7 @@ assets/
 이 프로젝트에서 의존 방향은 아래처럼만 허용합니다.
 
 ```text
-presentation -> application(controller/provider) -> application/usecases
+presentation -> application(controller/provider/state) -> application/usecases
 application/usecases -> domain(repository contract / entity)
 data(repository impl / datasource / dto) -> domain(repository contract / entity)
 data -> external(api, storage)
@@ -245,7 +261,7 @@ feature root providers -> data 구현체 조립
 
 ### 4) 세션 복구
 
-`features/auth/application/session_controller.dart`
+`features/auth/application/controllers/session_controller.dart`
 
 여기서 하는 일:
 

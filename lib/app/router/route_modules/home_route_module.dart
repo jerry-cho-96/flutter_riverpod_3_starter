@@ -1,8 +1,8 @@
 import 'package:go_router/go_router.dart';
 
-import '../../../features/home/presentation/home_screen.dart';
-import '../../../features/home/presentation/invalid_product_detail_screen.dart';
-import '../../../features/home/presentation/product_detail_screen.dart';
+import '../../../features/home/presentation/screens/home_screen.dart';
+import '../../../features/home/presentation/screens/invalid_product_detail_screen.dart';
+import '../../../features/home/presentation/screens/product_detail_screen.dart';
 import '../app_routes.dart';
 
 List<RouteBase> buildHomeRouteModule() {

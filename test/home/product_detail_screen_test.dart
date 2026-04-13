@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:riverpod_origin_template/features/home/presentation/product_detail_screen.dart';
+import 'package:riverpod_origin_template/features/home/presentation/screens/product_detail_screen.dart';
 import 'package:riverpod_origin_template/features/home/home_providers.dart';
 
 import '../helpers/test_doubles.dart';

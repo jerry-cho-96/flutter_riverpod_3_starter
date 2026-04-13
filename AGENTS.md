@@ -114,7 +114,7 @@
 이 저장소의 기본 계층은 아래와 같습니다.
 
 ```text
-presentation -> application(controller/provider) -> application/usecases
+presentation -> application(controller/provider/state) -> application/usecases
 application/usecases -> domain(repository contract / entity)
 data(repository impl / datasource / dto) -> domain(repository contract / entity)
 data -> external(api, storage)
@@ -165,6 +165,9 @@ data -> external(api, storage)
 ```text
 feature/
   application/
+    controllers/
+    providers/
+    states/
     usecases/
   data/
     datasources/
@@ -175,6 +178,8 @@ feature/
     repositories/
     value_objects/
   presentation/
+    mixins/
+    screens/
   <feature>_providers.dart
 ```
 
@@ -186,12 +191,11 @@ feature/
 - usecase provider 는 `application/usecases` 파일 안에 둡니다.
 - repository provider 는 `<feature>_providers.dart` 에 둡니다.
 - datasource provider 는 `data/datasources` 파일 안에 둡니다.
-- controller 는 `application` 에 두고 codegen 파일(`*.g.dart`)과 함께 관리합니다.
-- feature-level state 는 `application` 에 두고 controller 와 가까이 관리합니다.
-- page-scoped route argument provider 는 `application` 에 두고, 화면 진입점의 `ProviderScope` override 로 주입합니다.
-- `application` 하위 폴더 분리는 아직 기본값이 아닙니다.
-  - 현재처럼 파일 수가 작고 탐색 비용이 낮으면 루트 구조를 유지합니다.
-  - 생성 파일을 제외한 서로 다른 성격의 루트 파일이 5개 이상 섞이기 시작하면 `controllers/`, `states/`, `providers/`, `usecases/` 분리를 검토합니다.
+- controller 는 `application/controllers` 에 두고 codegen 파일(`*.g.dart`)과 함께 관리합니다.
+- feature-level state 는 `application/states` 에 두고 controller 와 가까이 관리합니다.
+- page-scoped route argument provider 는 `application/providers` 에 두고, 화면 진입점의 `ProviderScope` override 로 주입합니다.
+- `presentation` 화면은 `presentation/screens` 에 둡니다.
+- `presentation` mixin class 는 `presentation/mixins` 에 둡니다.
 
 ## 4. Riverpod 규칙
 
@@ -306,9 +310,9 @@ feature/
 - 새로운 화면도 현재 디자인 톤을 크게 벗어나지 않게 작성합니다.
 - 로딩/에러/재시도 패턴은 `core/presentation` 공통 위젯을 우선 사용합니다.
 - shell route 구조가 있으면 공통 scaffold 를 재사용합니다.
-- `presentation` 에서 provider 접근 지점이 많아지면 화면 전용 mixin class 로 `ref.watch/read` 를 정리할 수 있습니다.
+- `presentation` 에서 provider 접근 지점이 많아지면 `presentation/mixins` 의 화면 전용 mixin class 로 `ref.watch/read` 를 정리할 수 있습니다.
 - `*_presentation_mixins.dart` 는 실제 mixin class 인 경우에만 유지합니다.
-- presentation 파일 수가 늘어나면 `screens/`, `widgets/`, `mixins/`, `listeners/` 하위 분리를 검토합니다.
+- `presentation` 의 기본 하위 구조는 `screens/`, `mixins/` 이며, 필요하면 `widgets/`, `listeners/` 를 추가합니다.
 - 화면 파일 네이밍은 `*_screen.dart` 를 기본으로 유지합니다.
 
 ## 10. 환경설정 규칙

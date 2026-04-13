@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_origin_template/core/pagination/page_chunk.dart';
-import 'package:riverpod_origin_template/features/todos/application/current_todo_user_id_provider.dart';
-import 'package:riverpod_origin_template/features/todos/application/todos_controller.dart';
+import 'package:riverpod_origin_template/features/todos/application/controllers/todos_controller.dart';
+import 'package:riverpod_origin_template/features/todos/application/providers/todo_user_id_provider.dart';
 import 'package:riverpod_origin_template/features/todos/domain/entities/todo.dart';
-import 'package:riverpod_origin_template/features/todos/presentation/todos_screen.dart';
+import 'package:riverpod_origin_template/features/todos/presentation/screens/todos_screen.dart';
 import 'package:riverpod_origin_template/features/todos/todos_providers.dart';
 
 import 'fakes.dart';
@@ -20,7 +20,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         todosRepositoryProvider.overrideWithValue(repository),
-        currentTodoUserIdProvider.overrideWithValue(5),
+        todoUserIdProvider.overrideWithValue(5),
       ],
     );
     addTearDown(container.dispose);
@@ -57,7 +57,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         todosRepositoryProvider.overrideWithValue(repository),
-        currentTodoUserIdProvider.overrideWithValue(5),
+        todoUserIdProvider.overrideWithValue(5),
       ],
     );
     addTearDown(container.dispose);
@@ -94,7 +94,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         todosRepositoryProvider.overrideWithValue(repository),
-        currentTodoUserIdProvider.overrideWithValue(5),
+        todoUserIdProvider.overrideWithValue(5),
       ],
     );
     addTearDown(container.dispose);
@@ -133,7 +133,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         todosRepositoryProvider.overrideWithValue(repository),
-        currentTodoUserIdProvider.overrideWithValue(5),
+        todoUserIdProvider.overrideWithValue(5),
       ],
     );
     addTearDown(container.dispose);
@@ -174,7 +174,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         todosRepositoryProvider.overrideWithValue(repository),
-        currentTodoUserIdProvider.overrideWithValue(5),
+        todoUserIdProvider.overrideWithValue(5),
       ],
     );
     addTearDown(container.dispose);

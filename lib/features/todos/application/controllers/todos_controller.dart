@@ -1,13 +1,13 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/pagination/page_chunk.dart';
-import '../domain/entities/todo.dart';
-import 'current_todo_user_id_provider.dart';
-import 'todos_list_state.dart';
-import 'usecases/add_todo_use_case.dart';
-import 'usecases/delete_todo_use_case.dart';
-import 'usecases/get_todos_use_case.dart';
-import 'usecases/toggle_todo_completion_use_case.dart';
+import '../../../../core/pagination/page_chunk.dart';
+import '../../domain/entities/todo.dart';
+import '../providers/todo_user_id_provider.dart';
+import '../states/todos_list_state.dart';
+import '../usecases/add_todo_use_case.dart';
+import '../usecases/delete_todo_use_case.dart';
+import '../usecases/get_todos_use_case.dart';
+import '../usecases/toggle_todo_completion_use_case.dart';
 
 part 'todos_controller.g.dart';
 
@@ -25,7 +25,7 @@ class TodosController extends _$TodosController {
   }
 
   Future<void> addTodo(String todoText) async {
-    final userId = ref.read(currentTodoUserIdProvider);
+    final userId = ref.read(todoUserIdProvider);
     final createdTodo = await _unwrap<Todo>(
       ref.read(addTodoUseCaseProvider).call(userId: userId, todo: todoText),
     );
@@ -97,7 +97,7 @@ class TodosController extends _$TodosController {
       return;
     }
 
-    final userId = ref.read(currentTodoUserIdProvider);
+    final userId = ref.read(todoUserIdProvider);
     state = AsyncData(currentState.beginLoadMore());
 
     final result = await ref
@@ -170,7 +170,7 @@ class TodosController extends _$TodosController {
   }
 
   Future<TodosListState> _load() async {
-    final userId = ref.read(currentTodoUserIdProvider);
+    final userId = ref.read(todoUserIdProvider);
     final page = await _unwrap<PageChunk<Todo>>(
       ref
           .read(getTodosUseCaseProvider)

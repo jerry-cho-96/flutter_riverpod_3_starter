@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_origin_template/app/router/app_route_guard.dart';
 import 'package:riverpod_origin_template/app/router/app_routes.dart';
 import 'package:riverpod_origin_template/core/errors/app_failure.dart';
-import 'package:riverpod_origin_template/features/auth/application/session_state.dart';
+import 'package:riverpod_origin_template/features/auth/application/states/session_state.dart';
 
 import '../helpers/test_doubles.dart';
 

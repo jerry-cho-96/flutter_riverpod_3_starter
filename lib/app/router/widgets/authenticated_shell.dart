@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/app_config.dart';
-import '../../../features/auth/application/session_controller.dart';
+import '../../../features/auth/application/controllers/session_controller.dart';
 
 class AuthenticatedShell extends ConsumerWidget {
   const AuthenticatedShell({super.key, required this.child});

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_origin_template/features/quotes/domain/entities/quote.dart';
-import 'package:riverpod_origin_template/features/quotes/presentation/quotes_screen.dart';
+import 'package:riverpod_origin_template/features/quotes/presentation/screens/quotes_screen.dart';
 import 'package:riverpod_origin_template/features/quotes/quotes_providers.dart';
 
 import '../helpers/test_doubles.dart';

@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/config/app_config.dart';
-import '../../../core/pagination/paginated_list_state.dart';
-import '../../auth/application/session_controller.dart';
-import '../../auth/application/session_state.dart';
-import '../../auth/domain/entities/app_user.dart';
-import '../application/products_provider.dart';
-import '../domain/entities/product.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/pagination/paginated_list_state.dart';
+import '../../../auth/application/controllers/session_controller.dart';
+import '../../../auth/application/states/session_state.dart';
+import '../../../auth/domain/entities/app_user.dart';
+import '../../application/controllers/products_provider.dart';
+import '../../domain/entities/product.dart';
 
 mixin class HomePresentationStateMixin {
   AsyncValue<PaginatedListState<Product>> watchProducts(WidgetRef ref) {

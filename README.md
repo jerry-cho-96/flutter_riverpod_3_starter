@@ -77,6 +77,8 @@ lib/
     auth/
       auth_providers.dart
       application/
+        controllers/
+        states/
         usecases/
       data/
         datasources/
@@ -87,9 +89,13 @@ lib/
         repositories/
         value_objects/
       presentation/
+        mixins/
+        screens/
     home/
       home_providers.dart
       application/
+        controllers/
+        providers/
         usecases/
       data/
         datasources/
@@ -99,9 +105,12 @@ lib/
         entities/
         repositories/
       presentation/
+        mixins/
+        screens/
     quotes/
       quotes_providers.dart
       application/
+        controllers/
         usecases/
       data/
         datasources/
@@ -111,9 +120,14 @@ lib/
         entities/
         repositories/
       presentation/
+        mixins/
+        screens/
     todos/
       todos_providers.dart
       application/
+        controllers/
+        providers/
+        states/
         usecases/
       data/
         datasources/
@@ -123,6 +137,8 @@ lib/
         entities/
         repositories/
       presentation/
+        mixins/
+        screens/
 test/
   auth/
   home/
@@ -142,8 +158,7 @@ assets/
 - `presentation` 은 provider 를 구독하고 사용자 이벤트만 전달합니다.
 - `presentation` 에서 provider 접근 지점이 많아지면 feature 전용 `State/Event mixin class` 로 `ref.watch/read` 를 중앙화할 수 있습니다.
 - presentation mixin 은 화면 전용 facade 역할만 하며, controller 호출 위임과 단순 파생 상태까지만 담당합니다.
-- `application` 은 controller/provider 와 usecase 로 화면 흐름, side effect 를 관리합니다.
-- 현재 `application` 은 루트 구조를 유지하되, controller/state/provider 파일이 과도하게 섞이기 시작하면 `controllers/`, `states/`, `providers/` 하위 분리를 검토합니다.
+- `application` 은 `controllers/`, `providers/`, `states/`, `usecases/` 구조에서 화면 흐름과 side effect 를 관리합니다.
 - `domain` 은 엔티티, value object, repository 계약만 가지며 DTO/JSON/storage/network 타입을 직접 알지 않습니다.
 - `data` 는 DTO, remote/local datasource, repository 구현을 가집니다.
 - feature 루트의 composition provider 가 repository 구현체를 조립하고, usecase provider 는 필요 시 `core` provider 와 함께 의존성을 주입받습니다.

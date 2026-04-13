@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/errors/app_failure.dart';
-import '../../../core/presentation/async_value_view.dart';
-import '../application/todos_list_state.dart';
-import '../domain/entities/todo.dart';
-import 'todos_presentation_mixins.dart';
+import '../../../../core/errors/app_failure.dart';
+import '../../../../core/presentation/async_value_view.dart';
+import '../../application/states/todos_list_state.dart';
+import '../../domain/entities/todo.dart';
+import '../mixins/todos_presentation_mixins.dart';
 
 class TodosScreen extends ConsumerStatefulWidget {
   const TodosScreen({super.key});

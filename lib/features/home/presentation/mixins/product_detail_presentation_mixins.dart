@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../application/product_detail_argument_provider.dart';
-import '../application/product_detail_controller.dart';
-import '../domain/entities/product.dart';
+import '../../application/controllers/product_detail_controller.dart';
+import '../../application/providers/product_detail_argument_provider.dart';
+import '../../domain/entities/product.dart';
 
 mixin class ProductDetailPresentationStateMixin {
   int watchProductId(WidgetRef ref) {

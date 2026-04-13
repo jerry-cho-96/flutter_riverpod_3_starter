@@ -1,10 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../domain/entities/auth_session.dart';
-import 'session_state.dart';
-import 'usecases/persist_session_use_case.dart';
-import 'usecases/restore_session_use_case.dart';
-import 'usecases/sign_out_use_case.dart';
+import '../../domain/entities/auth_session.dart';
+import '../states/session_state.dart';
+import '../usecases/persist_session_use_case.dart';
+import '../usecases/restore_session_use_case.dart';
+import '../usecases/sign_out_use_case.dart';
 
 part 'session_controller.g.dart';
 

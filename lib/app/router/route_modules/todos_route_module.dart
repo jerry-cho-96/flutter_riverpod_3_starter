@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
 
-import '../../../features/todos/presentation/todos_screen.dart';
+import '../../../features/todos/presentation/screens/todos_screen.dart';
 import '../app_routes.dart';
 
 List<RouteBase> buildTodosRouteModule() {

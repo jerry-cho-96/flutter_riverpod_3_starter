@@ -1,22 +1,22 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/pagination/paginated_list_state.dart';
-import '../domain/entities/quote.dart';
-import 'usecases/get_quotes_use_case.dart';
+import '../../../../core/pagination/paginated_list_state.dart';
+import '../../domain/entities/product.dart';
+import '../usecases/get_products_use_case.dart';
 
-part 'quotes_controller.g.dart';
+part 'products_provider.g.dart';
 
 @riverpod
-class QuotesController extends _$QuotesController {
+class ProductsController extends _$ProductsController {
   static const int _pageSize = 20;
 
   @override
-  Future<PaginatedListState<Quote>> build() {
+  Future<PaginatedListState<Product>> build() {
     return _load(skip: 0);
   }
 
   Future<void> refresh() async {
-    ref.read(getQuotesUseCaseProvider).clearCache();
+    ref.read(getProductsUseCaseProvider).clearCache();
     ref.invalidateSelf();
     await future;
   }
@@ -32,7 +32,7 @@ class QuotesController extends _$QuotesController {
 
     state = AsyncData(currentState.beginLoadMore());
     final result = await ref
-        .read(getQuotesUseCaseProvider)
+        .read(getProductsUseCaseProvider)
         .call(limit: _pageSize, skip: currentState.nextOffset);
 
     if (!ref.mounted) {
@@ -47,13 +47,13 @@ class QuotesController extends _$QuotesController {
     );
   }
 
-  Future<PaginatedListState<Quote>> _load({required int skip}) async {
+  Future<PaginatedListState<Product>> _load({required int skip}) async {
     final result = await ref
-        .read(getQuotesUseCaseProvider)
+        .read(getProductsUseCaseProvider)
         .call(limit: _pageSize, skip: skip);
 
     return result.when(
-      success: (page) => PaginatedListState<Quote>.initial(
+      success: (page) => PaginatedListState<Product>.initial(
         items: page.items,
         pageSize: _pageSize,
         totalCount: page.total,

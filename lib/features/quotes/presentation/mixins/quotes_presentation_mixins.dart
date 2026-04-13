@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/pagination/paginated_list_state.dart';
-import '../application/quotes_controller.dart';
-import '../domain/entities/quote.dart';
+import '../../../../core/pagination/paginated_list_state.dart';
+import '../../application/controllers/quotes_controller.dart';
+import '../../domain/entities/quote.dart';
 
 mixin class QuotesPresentationStateMixin {
   AsyncValue<PaginatedListState<Quote>> watchQuotes(WidgetRef ref) {

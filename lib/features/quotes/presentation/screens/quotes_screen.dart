@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/pagination/paginated_list_state.dart';
-import '../../../core/presentation/async_value_view.dart';
-import '../domain/entities/quote.dart';
-import 'quotes_presentation_mixins.dart';
+import '../../../../core/pagination/paginated_list_state.dart';
+import '../../../../core/presentation/async_value_view.dart';
+import '../../domain/entities/quote.dart';
+import '../mixins/quotes_presentation_mixins.dart';
 
 class QuotesScreen extends ConsumerWidget
     with QuotesPresentationStateMixin, QuotesPresentationEventMixin {

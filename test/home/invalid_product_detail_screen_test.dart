@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:riverpod_origin_template/features/home/presentation/invalid_product_detail_screen.dart';
+import 'package:riverpod_origin_template/features/home/presentation/screens/invalid_product_detail_screen.dart';
 
 void main() {
   testWidgets('잘못된 상품 경로 화면은 안내 문구를 렌더링한다', (tester) async {

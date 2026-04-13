@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/router/app_routes.dart';
-import '../../../core/config/template_example.dart';
-import '../../../core/pagination/paginated_list_state.dart';
-import '../../../core/presentation/async_value_view.dart';
-import '../../auth/domain/entities/app_user.dart';
-import '../domain/entities/product.dart';
-import 'home_presentation_mixins.dart';
+import '../../../../app/router/app_routes.dart';
+import '../../../../core/config/template_example.dart';
+import '../../../../core/pagination/paginated_list_state.dart';
+import '../../../../core/presentation/async_value_view.dart';
+import '../../../auth/domain/entities/app_user.dart';
+import '../../domain/entities/product.dart';
+import '../mixins/home_presentation_mixins.dart';
 
 class HomeScreen extends ConsumerWidget
     with HomePresentationStateMixin, HomePresentationEventMixin {
